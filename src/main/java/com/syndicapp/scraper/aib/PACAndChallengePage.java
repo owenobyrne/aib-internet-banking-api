@@ -1,8 +1,3 @@
-// Decompiled by DJ v3.12.12.96 Copyright 2011 Atanas Neshkov  Date: 17/03/2013 01:04:35
-// Home Page: http://members.fortunecity.com/neshkov/dj.html  http://www.neshkov.com/dj.html - Check often for new version!
-// Decompiler options: packimports(3) 
-// Source File Name:   PACAndChallengePage.java
-
 package com.syndicapp.scraper.aib;
 
 import java.util.ArrayList;
@@ -22,23 +17,21 @@ import org.apache.http.util.EntityUtils;
 import com.syndicapp.scraper.FSSUserAgent;
 import com.syndicapp.scraper.aib.model.Account;
 
-public class PACAndChallengePage extends FSSUserAgent
-{
-
-    public PACAndChallengePage()
-    {
-    }
-
+public class PACAndChallengePage extends FSSUserAgent {
+	
     public static HashMap<String, Object> click(String page, HashMap<String, Object> inputParams)
-        throws Exception
-    {
+        throws Exception {
+    	
         HashMap<String, Object> outputParams = new HashMap<String, Object>();
         HttpPost httppost = new HttpPost("https://aibinternetbanking.aib.ie/inet/roi/login.htm");
+        
         String transactionToken = null;
         Pattern p = Pattern.compile("<input type=\"hidden\" name=\"transactionToken\" id=\"transactionToken\" value=\"(\\d*)\"/>");
-        Matcher m;
-        for(m = p.matcher(page); m.find();)
+        Matcher m = p.matcher(page);
+        
+        while (m.find()) {
             transactionToken = m.group(1);
+        }
 
         List<BasicNameValuePair> nvps = new ArrayList<BasicNameValuePair>();
         nvps.add(new BasicNameValuePair("transactionToken", transactionToken));
@@ -48,18 +41,27 @@ public class PACAndChallengePage extends FSSUserAgent
         nvps.add(new BasicNameValuePair("pacDetails.pacDigit2", (String)inputParams.get("pacDetails.pacDigit2")));
         nvps.add(new BasicNameValuePair("pacDetails.pacDigit3", (String)inputParams.get("pacDetails.pacDigit3")));
         nvps.add(new BasicNameValuePair("challengeDetails.challengeEntered", (String)inputParams.get("challengeDetails.challengeEntered")));
+        
         httppost.setEntity(new UrlEncodedFormEntity(nvps, Consts.UTF_8));
+        
         HttpResponse response = httpclient.execute(httppost);
         HttpEntity entity = response.getEntity();
         page = EntityUtils.toString(entity);
+        
         outputParams.put("page", page);
-        p = Pattern.compile("<span>([\\s\\w\\d]+\\-\\d{3,4})</span>\\s*</button>\\s*</form>.*?<h3>([\\d,.]+)\\s([DR]*)\\s*[&<]", 32);
+        System.out.println(page);
+        
+        p = Pattern.compile("<span>([\\s\\w\\d]+\\-\\d{3,4})</span>\\s*</button>\\s*</form>.*?<h3>\\s*([\\d,.]+)\\s([DR]*)\\s*[&<]", Pattern.DOTALL);
         m = p.matcher(page);
+        
         ArrayList<Account> accounts = new ArrayList<Account>();
-        for(int i = 0; m.find(); i++)
-        {
+
+        int i = 0; 
+        while(m.find()) {
             Account a = new Account(i, m.group(1), m.group(2), m.group(3));
+            System.out.println("Found account " + m.group(1));
             accounts.add(a);
+        	i++;
         }
 
         outputParams.put("balances", accounts);

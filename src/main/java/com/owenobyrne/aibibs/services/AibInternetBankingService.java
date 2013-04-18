@@ -1,13 +1,9 @@
-// Decompiled by DJ v3.12.12.96 Copyright 2011 Atanas Neshkov  Date: 17/03/2013 01:04:34
-// Home Page: http://members.fortunecity.com/neshkov/dj.html  http://www.neshkov.com/dj.html - Check often for new version!
-// Decompiler options: packimports(3) 
-// Source File Name:   AibInternetBankingService.java
-
 package com.owenobyrne.aibibs.services;
 
 import java.util.HashMap;
 
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Component;
 
 import com.syndicapp.scraper.aib.AccountOverviewPage;
 import com.syndicapp.scraper.aib.LoginPage;
@@ -18,12 +14,9 @@ import com.syndicapp.scraper.aib.StatementPage;
 import com.syndicapp.scraper.aib.model.TransactionList;
 import com.syndicapp.scraper.exception.UnexpectedPageContentsException;
 
+@Component
 public class AibInternetBankingService
 {
-
-    public AibInternetBankingService()
-    {
-    }
 
     public HashMap<String, Object> enterRegistrationNumber(String registrationNumber)
     {
