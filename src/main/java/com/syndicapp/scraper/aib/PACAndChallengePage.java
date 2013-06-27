@@ -49,17 +49,26 @@ public class PACAndChallengePage extends FSSUserAgent {
         page = EntityUtils.toString(entity);
         
         outputParams.put("page", page);
-        System.out.println(page);
+        //System.out.println(page);
         
-        p = Pattern.compile("<span>([\\s\\w\\d]+\\-\\d{3,4})</span>\\s*</button>\\s*</form>.*?<h3>\\s*([\\d,.]+)\\s([DR]*)\\s*[&<]", Pattern.DOTALL);
+        // regex yeeeehaw!!! What a bitch this was to figure out!
+        p = Pattern.compile("<span>([\\s\\w\\d]+\\-\\d{3,4})</span>\\s*</button>\\s*</form>(?:(?!transactionToken).)*?<h3>\\s*([\\d,.]+)\\s(DR)?\\s*[&<]((?:(?!transactionToken).)*?Available Funds.*?([\\d,.]+)\\s?(DR)?&)?", Pattern.DOTALL);
         m = p.matcher(page);
         
         ArrayList<Account> accounts = new ArrayList<Account>();
 
         int i = 0; 
         while(m.find()) {
-            Account a = new Account(i, m.group(1), m.group(2), m.group(3));
-            System.out.println("Found account " + m.group(1));
+        	Account a = null;
+        	if (m.groupCount() == 6) {
+        		if (null == m.group(5)) {
+        			a = new Account(i, m.group(1), m.group(2), m.group(3));
+        			System.out.println("Found account " + m.group(1));
+        		} else {
+        			a = new Account(i, m.group(1), m.group(5), m.group(6));
+        			System.out.println("Found account with available balance " + m.group(1));
+        		}
+        	}
             accounts.add(a);
         	i++;
         }

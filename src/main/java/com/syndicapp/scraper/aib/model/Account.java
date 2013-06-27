@@ -53,7 +53,7 @@ public class Account
 
     public boolean isDR()
     {
-        return drcr.equalsIgnoreCase("DR");
+        return (drcr != null ? drcr.equalsIgnoreCase("DR") : false);
     }
 
     public void setTransactions(ArrayList<Transaction> t)
