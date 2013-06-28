@@ -38,7 +38,7 @@ public class Account
         this.id = id;
         this.name = name;
         this.balance = balance;
-        this.drcr = drcr;
+        this.drcr = (null == drcr ? "" : drcr);
     }
 
     public String getName()
@@ -53,7 +53,7 @@ public class Account
 
     public boolean isDR()
     {
-        return (drcr != null ? drcr.equalsIgnoreCase("DR") : false);
+        return drcr.equalsIgnoreCase("DR");
     }
 
     public void setTransactions(ArrayList<Transaction> t)
