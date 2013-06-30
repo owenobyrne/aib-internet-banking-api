@@ -57,7 +57,7 @@ public class PACAndChallengePage extends FSSUserAgent {
         
         ArrayList<Account> accounts = new ArrayList<Account>();
 
-        int i = 0; 
+        int i = 1; 
         while(m.find()) {
         	Account a = null;
         	if (m.groupCount() == 6) {
