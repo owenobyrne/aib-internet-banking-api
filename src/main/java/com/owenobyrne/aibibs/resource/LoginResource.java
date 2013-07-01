@@ -44,7 +44,7 @@ public class LoginResource {
 		HashMap<String, Object> response = aibibs.enterRegistrationNumber(registrationNumber);
 		UUID sessionId = new UUID();
 		cassandra.addData(CassandraService.CF_SESSIONS, sessionId.toString(),
-				"page", (String) response.get("page"), 180);
+				"page", (String) response.get("page"), 390);
 		response.put("sessionId", sessionId.toString());
 		response.remove("page");
 		return response;
@@ -65,7 +65,7 @@ public class LoginResource {
 		String page = cassandra.getData(CassandraService.CF_SESSIONS,sessionId, "page");
 		if (page != null) {
 			HashMap<String, Object> response = aibibs.enterPACDigits(page, pac1, pac2, pac3, digits);
-			cassandra.addData(CassandraService.CF_SESSIONS, sessionId, "page", (String) response.get("page"), 180);
+			cassandra.addData(CassandraService.CF_SESSIONS, sessionId, "page", (String) response.get("page"), 390);
 			//response.put("sessionId", sessionId);
 			response.remove("page");
 			return response;

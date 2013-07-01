@@ -47,7 +47,7 @@ public class AccountsResource {
 		if (page != null) {
 			HashMap<String, Object> response = aibibs.getAccountBalances(page);
 			cassandra.addData(CassandraService.CF_SESSIONS, sessionId, "page",
-					(String) response.get("page"), 180);
+					(String) response.get("page"), 390);
 			//response.put("sessionId", sessionId);
 			response.remove("page");
 			return response;
@@ -72,7 +72,7 @@ public class AccountsResource {
 		if (page != null) {
 			HashMap<String, Object> response = aibibs.getTransactionsForAccount(page, accountId);
 			cassandra.addData(CassandraService.CF_SESSIONS, sessionId, "page",
-					(String) response.get("page"), 180);
+					(String) response.get("page"), 390);
 			//response.put("sessionId", sessionId);
 			response.remove("page");
 			response.remove("accounts");
