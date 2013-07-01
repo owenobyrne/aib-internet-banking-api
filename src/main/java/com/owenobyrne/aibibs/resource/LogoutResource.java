@@ -8,12 +8,12 @@ package com.owenobyrne.aibibs.resource;
 import java.util.HashMap;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.UriInfo;
 
@@ -36,12 +36,11 @@ public class LogoutResource
     @Autowired
     CassandraService cassandra;
 
-	@POST
-	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-    public HashMap<String, Object> logout(MultivaluedMap<String, String> params)
+    public HashMap<String, Object> logout(@QueryParam("sessionId") String sessionId)
     {
-        String sessionId = params.getFirst("SESSION_ID");
+        //String sessionId = params.getFirst("SESSION_ID");
         String page = cassandra.getData(CassandraService.CF_SESSIONS, sessionId, "page");
         if(page != null)
         {
