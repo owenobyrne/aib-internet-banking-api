@@ -16,6 +16,7 @@ import org.apache.http.util.EntityUtils;
 
 import com.syndicapp.scraper.FSSUserAgent;
 import com.syndicapp.scraper.aib.model.Account;
+import com.syndicapp.scraper.exception.UnexpectedPageContentsException;
 
 public class PACAndChallengePage extends FSSUserAgent {
 	
@@ -47,33 +48,19 @@ public class PACAndChallengePage extends FSSUserAgent {
         HttpResponse response = httpclient.execute(httppost);
         HttpEntity entity = response.getEntity();
         page = EntityUtils.toString(entity);
-        
-        outputParams.put("page", page);
-        //System.out.println(page);
-        
-        // regex yeeeehaw!!! What a bitch this was to figure out!
-        p = Pattern.compile("<span>([\\s\\w\\d]+\\-\\d{3,4})</span>\\s*</button>\\s*</form>(?:(?!transactionToken).)*?<h3>\\s*([\\d,.]+)\\s(DR)?\\s*[&<]((?:(?!transactionToken).)*?Available Funds.*?([\\d,.]+)\\s?(DR)?&)?", Pattern.DOTALL);
-        m = p.matcher(page);
-        
-        ArrayList<Account> accounts = new ArrayList<Account>();
-
-        int i = 1; 
-        while(m.find()) {
-        	Account a = null;
-        	if (m.groupCount() == 6) {
-        		if (null == m.group(5)) {
-        			a = new Account(i, m.group(1), m.group(2), m.group(3));
-        			System.out.println("Found account " + m.group(1));
-        		} else {
-        			a = new Account(i, m.group(1), m.group(5), m.group(6));
-        			System.out.println("Found account with available balance " + m.group(1));
-        		}
-        	}
-            accounts.add(a);
-        	i++;
-        }
-
-        outputParams.put("balances", accounts);
-        return outputParams;
+        if(!page.contains("You are securely logged in."))
+        {
+            throw new UnexpectedPageContentsException("Didn't get to the Account Overview Page!");
+        } else
+        {
+            outputParams.put("page", page);
+            
+            ArrayList<Account> accounts = PageUtils.parseBalances(page);
+            outputParams.put("balances", accounts);
+            
+            return outputParams;
+        }    
     }
+    
+
 }

@@ -20,6 +20,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
 import com.syndicapp.scraper.FSSUserAgent;
+import com.syndicapp.scraper.aib.model.Account;
 import com.syndicapp.scraper.exception.UnexpectedPageContentsException;
 
 public class AccountOverviewPage extends FSSUserAgent
@@ -53,6 +54,10 @@ public class AccountOverviewPage extends FSSUserAgent
         } else
         {
             outputParams.put("page", page);
+                        
+            ArrayList<Account> accounts = PageUtils.parseBalances(page);
+            outputParams.put("balances", accounts);
+
             return outputParams;
         }
     }
