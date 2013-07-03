@@ -76,6 +76,7 @@ public class AccountsResource {
 			//response.put("sessionId", sessionId);
 			response.remove("page");
 			response.remove("accounts");
+			response.remove("balances");
 			return response;
 		} else {
 			cassandra.deleteData(CassandraService.CF_SESSIONS, sessionId);
