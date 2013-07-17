@@ -117,6 +117,14 @@
 			<artifactId>antlr</artifactId>
 			<groupId>antlr</groupId>
 		</exclusion>
+		<exclusion>
+			<artifactId>servlet-api</artifactId>
+			<groupId>org.mortbay.jetty</groupId>
+		</exclusion>
+		<exclusion>
+			<artifactId>servlet-api</artifactId>
+			<groupId>javax.servlet</groupId>
+		</exclusion>
 	</exclusions>
 </dependency>
 	</dependencies>
@@ -163,7 +171,7 @@
 				<artifactId>tomcat-maven-plugin</artifactId>
 				<version>1.1</version>
 				<configuration>
-					<url>http://10.10.1.2:8080/manager/html</url>
+					<url>http://10.10.1.2:8080/manager/text</url>
 					<server>TomcatServerOnMiller</server>
 					<path>/AIBInternetBankingService</path>
 				</configuration>

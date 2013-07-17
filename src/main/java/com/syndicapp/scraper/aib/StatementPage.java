@@ -80,7 +80,7 @@ public class StatementPage extends FSSUserAgent {
 		TransactionList transactions = new TransactionList();
 		Transaction t = null;
 		while (m.find()) {
-			if ("interest rate".equalsIgnoreCase(m.group(4))) {
+			if (m.group(4).toLowerCase().contains("interest rate")) {
 				t = new Transaction(new GregorianCalendar(2000 + Integer.parseInt(m.group(3)),
 						Integer.parseInt(m.group(2)) - 1, Integer.parseInt(m.group(1))),
 						"New Interest Rate", m.group(5), m.group(6), m.group(7));
