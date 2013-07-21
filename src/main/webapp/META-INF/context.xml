@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+     <Loader className="org.apache.catalina.loader.VirtualWebappLoader"
+          virtualClasspath="/opt/apache-tomcat-7.0.42/application-libs/aibinternetbankingapi/*.jar"/>
+</Context>
