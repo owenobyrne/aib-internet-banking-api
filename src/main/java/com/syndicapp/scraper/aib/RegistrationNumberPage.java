@@ -47,7 +47,7 @@ public class RegistrationNumberPage extends FSSUserAgent
         HttpResponse response = httpclient.execute(httppost);
         HttpEntity entity = response.getEntity();
         page = EntityUtils.toString(entity);
-        Log.debug(page);
+        log.debug(page);
         outputParams.put("page", page);
         p = Pattern.compile("<label for=\"digit\\d\"><strong>Digit (\\d)</strong></label>");
         m = p.matcher(page);

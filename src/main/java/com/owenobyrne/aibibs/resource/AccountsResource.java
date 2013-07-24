@@ -1,16 +1,15 @@
 package com.owenobyrne.aibibs.resource;
 
 import java.util.HashMap;
+import java.util.Vector;
 
-import javax.ws.rs.Consumes;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.UriInfo;
 
@@ -19,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import com.owenobyrne.aibibs.services.AibInternetBankingService;
 import com.owenobyrne.aibibs.services.CassandraService;
+import com.syndicapp.scraper.aib.model.PendingTransaction;
 
 @Path("/accounts")
 @Component
@@ -28,6 +28,9 @@ public class AccountsResource {
 	UriInfo uriInfo;
 	@Context
 	Request request;
+	@Context 
+	HttpServletResponse response;
+
 
 	@Autowired
 	AibInternetBankingService aibibs;
@@ -59,18 +62,18 @@ public class AccountsResource {
 		}
 	}
 
-	@Path("/{accountId}/transactions")
+	@Path("/{accountName}/transactions")
 	@GET
 	@Produces(value = "application/json")
 	public HashMap<String, Object> getTransactions(
 			@QueryParam("sessionId") String sessionId,
-			@PathParam(value = "accountId") String accountId
+			@PathParam(value = "accountName") String accountName
 		) {
 
 		//String sessionId = params.getFirst("SESSION_ID");
 		String page = cassandra.getData(CassandraService.CF_SESSIONS, sessionId, "page");
 		if (page != null) {
-			HashMap<String, Object> response = aibibs.getTransactionsForAccount(page, accountId);
+			HashMap<String, Object> response = aibibs.getTransactionsForAccount(page, accountName);
 			cassandra.addData(CassandraService.CF_SESSIONS, sessionId, "page",
 					(String) response.get("page"), 390);
 			//response.put("sessionId", sessionId);
@@ -83,6 +86,28 @@ public class AccountsResource {
 			HashMap<String, Object> r = new HashMap<String, Object>();
 			r.put("error", "Session has expired");
 			return r;
+		}
+	}
+
+	@Path("/{accountName}/pending")
+	@GET
+	@Produces(value = "application/json")
+	public Vector<PendingTransaction> getPendingTransactions(
+			@QueryParam("sessionId") String sessionId,
+			@PathParam(value = "accountName") String accountName
+		) {
+
+		String page = cassandra.getData(CassandraService.CF_SESSIONS, sessionId, "page");
+		if (page != null) {
+			HashMap<String, Object> response = aibibs.getPendingTransactionsForAccount(page, accountName);
+			cassandra.addData(CassandraService.CF_SESSIONS, sessionId, "page",
+					(String) response.get("page"), 390);
+			
+			return (Vector<PendingTransaction>)response.get("pendingtransactions");
+		} else {
+			cassandra.deleteData(CassandraService.CF_SESSIONS, sessionId);
+			response.setHeader("X-AIBAPI-Error", "Session has expired");
+			return null;
 		}
 	}
 

@@ -43,7 +43,7 @@ public class TransferToAnotherROIAccountConfirmationPage extends FSSUserAgent
         nvps.add(new BasicNameValuePair("_finish.y", "8"));
         nvps.add(new BasicNameValuePair("iBankFormSubmission", "true"));
         nvps.add(new BasicNameValuePair("transactionToken", transactionToken));
-        Log.debug((new StringBuilder()).append("Clicking 'Transfer to Another ROI Account confirmation' with ").append(nvps.toString()).toString());
+        log.debug((new StringBuilder()).append("Clicking 'Transfer to Another ROI Account confirmation' with ").append(nvps.toString()).toString());
         httppost.setEntity(new UrlEncodedFormEntity(nvps, "ISO-8859-1"));
         HttpResponse response = httpclient.execute(httppost);
         HttpEntity entity = response.getEntity();

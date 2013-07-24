@@ -38,7 +38,7 @@ public class AddNewPayeePage extends FSSUserAgent
         HttpPost httppost = new HttpPost("https://aibinternetbanking.aib.ie/inet/roi/addpayee.htm");
         List nvps = new ArrayList();
         nvps.add(new BasicNameValuePair("transactionToken", transactionToken));
-        Log.debug((new StringBuilder()).append("Clicking 'Transfers and Payments' with ").append(nvps.toString()).toString());
+        log.debug((new StringBuilder()).append("Clicking 'Transfers and Payments' with ").append(nvps.toString()).toString());
         httppost.setEntity(new UrlEncodedFormEntity(nvps, "ISO-8859-1"));
         HttpResponse response = httpclient.execute(httppost);
         HttpEntity entity = response.getEntity();

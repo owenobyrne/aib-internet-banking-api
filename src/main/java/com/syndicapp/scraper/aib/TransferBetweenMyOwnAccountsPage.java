@@ -41,7 +41,7 @@ public class TransferBetweenMyOwnAccountsPage extends FSSUserAgent
         nvps.add(new BasicNameValuePair("iBankFormSubmission", "true"));
         nvps.add(new BasicNameValuePair("transactionToken", transactionToken));
         nvps.add(new BasicNameValuePair("selectedPaymentType", "1"));
-        Log.debug((new StringBuilder()).append("Clicking 'Transfers between my own accounts' with ").append(nvps.toString()).toString());
+        log.debug((new StringBuilder()).append("Clicking 'Transfers between my own accounts' with ").append(nvps.toString()).toString());
         httppost.setEntity(new UrlEncodedFormEntity(nvps, "ISO-8859-1"));
         HttpResponse response = httpclient.execute(httppost);
         HttpEntity entity = response.getEntity();
@@ -54,7 +54,7 @@ public class TransferBetweenMyOwnAccountsPage extends FSSUserAgent
             p = Pattern.compile("<option value=\"(\\d+)\">(.*?) \\(([\\s\\d\\.,DCR]*?)\\)</option>");
             m = p.matcher(m.group(1));
             while(m.find()) 
-                Log.debug((new StringBuilder()).append(m.group(0)).append(": ").append(m.group(1)).append(" - ").append(m.group(2)).append(" - ").append(m.group(3)).toString());
+                log.debug((new StringBuilder()).append(m.group(0)).append(": ").append(m.group(1)).append(" - ").append(m.group(2)).append(" - ").append(m.group(3)).toString());
         }
 
         p = Pattern.compile("selectedToAccountIndex\" class=\"jsIntroText0 aibInputStyle04\">\\s*<option value=\"-1\" selected=\"selected\">Please select:</option>\\s*(.*?)\\s*</select>");
@@ -62,7 +62,7 @@ public class TransferBetweenMyOwnAccountsPage extends FSSUserAgent
         if(m.find())
         {
             p = Pattern.compile("<option value=\"(\\d+)\">(.*?) \\(([\\s\\d\\.,DCR]*?)\\)</option>");
-            for(m = p.matcher(m.group(1)); m.find(); Log.debug((new StringBuilder()).append(m.group(0)).append(": ").append(m.group(1)).append(" - ").append(m.group(2)).append(" - ").append(m.group(3)).toString()));
+            for(m = p.matcher(m.group(1)); m.find(); log.debug((new StringBuilder()).append(m.group(0)).append(": ").append(m.group(1)).append(" - ").append(m.group(2)).append(" - ").append(m.group(3)).toString()));
         }
         outputParams.put("page", page);
         return outputParams;

@@ -47,7 +47,7 @@ public class TransferToAnotherROIAccountStep3 extends FSSUserAgent
         nvps.add(new BasicNameValuePair("paymentAmount.cent", (String)inputParams.get("amountcent")));
         nvps.add(new BasicNameValuePair("_target6.x", "21"));
         nvps.add(new BasicNameValuePair("_target6.y", "15"));
-        Log.debug((new StringBuilder()).append("Clicking 'Transfer to Another ROI Account Step 3' with ").append(nvps.toString()).toString());
+        log.debug((new StringBuilder()).append("Clicking 'Transfer to Another ROI Account Step 3' with ").append(nvps.toString()).toString());
         httppost.setEntity(new UrlEncodedFormEntity(nvps, "ISO-8859-1"));
         HttpResponse response = httpclient.execute(httppost);
         HttpEntity entity = response.getEntity();

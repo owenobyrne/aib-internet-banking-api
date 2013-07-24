@@ -18,14 +18,16 @@ public class Account {
 	private BigDecimal balance;
 	private String drcr;
 	private ArrayList<Transaction> transactions;
+	private boolean pending;
 
-	public Account(int id, String name, String balance, String drcr) {
+	public Account(int id, String name, String balance, String drcr, boolean pending) {
 		Log.debug((new StringBuilder()).append("New Account - ").append(name).append(" - ")
 				.append(balance).append(drcr).toString());
 		this.id = id;
 		this.name = name;
 		this.balance = new BigDecimal(balance.replace(",", ""));
 		this.drcr = (null == drcr ? "" : drcr);
+		this.pending = pending;
 	}
 
 	public String getDrcr() {
@@ -54,6 +56,11 @@ public class Account {
 
 	public boolean isDR() {
 		return drcr.equalsIgnoreCase("DR");
+	}
+
+
+	public boolean isPending() {
+		return pending;
 	}
 
 	public void setTransactions(ArrayList<Transaction> t) {

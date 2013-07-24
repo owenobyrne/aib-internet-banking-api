@@ -17,7 +17,7 @@ public class FSSUserAgent
     }
 
     public static DefaultHttpClient httpclient = new DefaultHttpClient();
-    public static Logger Log = Logger.getLogger(FSSUserAgent.class);
+    public static Logger log = Logger.getLogger(FSSUserAgent.class);
     public static BasicHttpContext context = new BasicHttpContext();
 
 }

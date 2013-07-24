@@ -43,7 +43,7 @@ public class LogoutPage extends FSSUserAgent
         HttpResponse response = httpclient.execute(httppost);
         org.apache.http.HttpEntity entity = response.getEntity();
         page = EntityUtils.toString(entity);
-        Log.debug(page);
+        log.debug(page);
         outputParams.put("page", page);
         return outputParams;
     }

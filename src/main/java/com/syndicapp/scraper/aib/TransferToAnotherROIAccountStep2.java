@@ -44,7 +44,7 @@ public class TransferToAnotherROIAccountStep2 extends FSSUserAgent
         nvps.add(new BasicNameValuePair("iBankFormSubmission", "true"));
         nvps.add(new BasicNameValuePair("_target2.x", "21"));
         nvps.add(new BasicNameValuePair("_target2.y", "15"));
-        Log.debug((new StringBuilder()).append("Clicking 'Transfer to Another ROI Account Step 2' with ").append(nvps.toString()).toString());
+        log.debug((new StringBuilder()).append("Clicking 'Transfer to Another ROI Account Step 2' with ").append(nvps.toString()).toString());
         httppost.setEntity(new UrlEncodedFormEntity(nvps, "ISO-8859-1"));
         HttpResponse response = httpclient.execute(httppost);
         HttpEntity entity = response.getEntity();
@@ -60,7 +60,7 @@ public class TransferToAnotherROIAccountStep2 extends FSSUserAgent
             while(m.find()) 
             {
                 addl.addAccountDropdownItem(new AccountDropdownItem(m.group(1), m.group(2), ""));
-                Log.debug((new StringBuilder()).append(m.group(0)).append(": ").append(m.group(1)).append(" - ").append(m.group(2)).toString());
+                log.debug((new StringBuilder()).append(m.group(0)).append(": ").append(m.group(1)).append(" - ").append(m.group(2)).toString());
             }
         }
 

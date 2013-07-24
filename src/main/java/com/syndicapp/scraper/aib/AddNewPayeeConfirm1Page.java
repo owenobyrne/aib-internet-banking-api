@@ -43,7 +43,7 @@ public class AddNewPayeeConfirm1Page extends FSSUserAgent
         nvps.add(new BasicNameValuePair("_target2", "true"));
         nvps.add(new BasicNameValuePair("_target2.x", "43"));
         nvps.add(new BasicNameValuePair("_target2.y", "15"));
-        Log.debug((new StringBuilder()).append("Clicking 'Add new Payee Confirm 1' with ").append(nvps.toString()).toString());
+        log.debug((new StringBuilder()).append("Clicking 'Add new Payee Confirm 1' with ").append(nvps.toString()).toString());
         httppost.setEntity(new UrlEncodedFormEntity(nvps, "ISO-8859-1"));
         HttpResponse response = httpclient.execute(httppost);
         HttpEntity entity = response.getEntity();

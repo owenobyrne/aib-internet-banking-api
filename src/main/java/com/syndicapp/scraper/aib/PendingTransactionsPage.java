@@ -6,7 +6,6 @@
 package com.syndicapp.scraper.aib;
 
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -23,49 +22,61 @@ import org.apache.http.util.EntityUtils;
 import com.syndicapp.scraper.FSSUserAgent;
 import com.syndicapp.scraper.aib.model.AccountDropdownItem;
 import com.syndicapp.scraper.aib.model.AccountDropdownList;
-import com.syndicapp.scraper.aib.model.Transaction;
-import com.syndicapp.scraper.aib.model.TransactionList;
+import com.syndicapp.scraper.aib.model.PendingTransaction;
+import com.syndicapp.scraper.aib.model.PendingTransactionList;
 
-public class StatementPage extends FSSUserAgent {
+public class PendingTransactionsPage extends FSSUserAgent {
 
-	public StatementPage() {
+	public PendingTransactionsPage() {
 	}
 
 	public static HashMap<String, Object> click(String page, HashMap<String, Object> inputParams)
 			throws Exception {
 		HashMap<String, Object> outputParams = new HashMap<String, Object>();
-		HttpPost httppost = new HttpPost("https://aibinternetbanking.aib.ie/inet/roi/statement.htm");
+		HttpPost httppost = new HttpPost("https://aibinternetbanking.aib.ie/inet/roi/pendingtransactions.htm");
+		log.trace(page);
 		List<BasicNameValuePair> nvps = new ArrayList<BasicNameValuePair>();
 		Pattern p = null;
 		String transactionToken = null;
 		Matcher m;
+		
 		if (inputParams.get("index") != null) {
+			// I've just clicked the pending transactions tab and 
+			// now I want to select the account specified by "index"
+	
 			nvps.add(new BasicNameValuePair("index", (String) inputParams.get("index")));
 			log.debug("Clicked the drop down");
 			p = Pattern
-					.compile("action=\"statement.htm\" method=\"POST\" onsubmit=\"return isClickEnabled\\(\\)\">\\s*<div>\\s*<label>Change account:\\s*<select id=\"index\" name=\"index\">\\s*(.*?)\\s*</select>\\s*</label>\\s*<input type=\"hidden\" name=\"transactionToken\" id=\"transactionToken\" value=\"(\\d+)\"/>");
+					.compile("<label>Change account:\\s*<select id=\"index\" name=\"index\">\\s*(.*?)\\s*</select>\\s*</label>\\s*<input type=\"hidden\" name=\"transactionToken\" id=\"transactionToken\" value=\"(\\d+)\"/>");
 			m = p.matcher(page);
 			if (m.find())
 				transactionToken = m.group(2);
 			nvps.add(new BasicNameValuePair("isFormButtonClicked", "true"));
 			nvps.add(new BasicNameValuePair("transactionToken", transactionToken));
+			
 		} else {
-			log.debug("Clicked the left menu");
+			// I'm on the Recent Transactions page and I'm clicking the Pending Transactions tab.
+			log.debug("Clicked the Pending Transactions Tab");
 			p = Pattern
-					.compile("action=\"statement.htm\" method=\"post\"><input type=\"hidden\" name=\"isFormButtonClicked\" value=\"false\" /><input type=\"hidden\" name=\"transactionToken\" id=\"transactionToken\" value=\"(\\d+)\"/>");
-			for (m = p.matcher(page); m.find();)
+					.compile("action=\"pendingtransactions.htm\" method=\"post\" ><input type=\"hidden\" name=\"transactionToken\" id=\"transactionToken\" value=\"(\\d+)\"/>");
+			m = p.matcher(page); 
+			if (m.find()) {
 				transactionToken = m.group(1);
-
+			}
+			
 			nvps.add(new BasicNameValuePair("isFormButtonClicked", "true"));
+			nvps.add(new BasicNameValuePair("tabName", "Pending Transactions"));
 			nvps.add(new BasicNameValuePair("transactionToken", transactionToken));
 		}
-		log.info((new StringBuilder()).append("Clicking 'Statement' with ").append(nvps.toString())
+		
+		log.info((new StringBuilder()).append("Clicking 'Pending Transactions' with ").append(nvps.toString())
 				.toString());
 		httppost.setEntity(new UrlEncodedFormEntity(nvps, Consts.UTF_8));
 		HttpResponse response = httpclient.execute(httppost);
 		HttpEntity entity = response.getEntity();
 		page = EntityUtils.toString(entity);
 		outputParams.put("page", page);
+		
 		p = Pattern.compile("<option value=\"(\\d+)\".*?>(.*?)</option>");
 		m = p.matcher(page);
 		AccountDropdownList addl = new AccountDropdownList();
@@ -74,32 +85,19 @@ public class StatementPage extends FSSUserAgent {
 			log.info((new StringBuilder()).append("Account name - ").append(m.group(2)).toString());
 
 		outputParams.put("accounts", addl);
+		
 		p = Pattern
-				.compile("<tr class=\"j*ext01\">\\s*<td>(\\d\\d)/(\\d\\d)/(\\d\\d)</td>\\s*<td>([^<]*)</td>\\s*<td class=\"aibTextStyle10\">([^<]*)</td>\\s*<td class=\"aibTextStyle10\">([^<]*)</td>\\s*<td class=\"aibTextStyle10\">([^<]*)</td></tr>");
+				.compile("<tr class=\"j?ext01\">\\s*<td>([^<]*)</td>\\s*<td class=\"aibTextStyle11\">([\\d,.]+)&nbsp;&nbsp;(DR)?</td></tr>");
 		m = p.matcher(page);
-		TransactionList transactions = new TransactionList();
-		Transaction t = null;
+		PendingTransactionList pendingTransactions = new PendingTransactionList();
+		PendingTransaction t = null;
 		while (m.find()) {
-			if (m.group(4).toLowerCase().contains("interest rate")) {
-				t = new Transaction(new GregorianCalendar(2000 + Integer.parseInt(m.group(3)),
-						Integer.parseInt(m.group(2)) - 1, Integer.parseInt(m.group(1))),
-						"New Interest Rate", m.group(5), m.group(6), m.group(7));
-				transactions.addTransaction(t);
-				log.debug("Added new interest rate: " + t.getNarrative());
-			} else if (t != null && "".equals(m.group(5)) && "".equals(m.group(6))) {
-				t.addSubNarrative(m.group(4));
-				transactions.replaceLastTransaction(t);
-				log.debug("Updated narrative: " + t.getNarrative());
-			} else {
-				t = new Transaction(new GregorianCalendar(2000 + Integer.parseInt(m.group(3)),
-						Integer.parseInt(m.group(2)) - 1, Integer.parseInt(m.group(1))),
-						m.group(4), m.group(5), m.group(6), m.group(7));
-				transactions.addTransaction(t);
-				log.debug("Added: " + t.getNarrative());
-			}
-			log.debug("Found transaction: " + t.getNarrative());
+			t = new PendingTransaction(m.group(1), m.group(2), m.group(3));
+			pendingTransactions.addTransaction(t);
+			log.info("Added: " + t.getNarrative());
 		}
-		outputParams.put("transactions", transactions);
+		outputParams.put("pendingtransactions", pendingTransactions.getTransactions());
+		
 		return outputParams;
 	}
 }

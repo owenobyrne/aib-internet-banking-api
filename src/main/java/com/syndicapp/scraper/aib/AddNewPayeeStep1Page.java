@@ -46,7 +46,7 @@ public class AddNewPayeeStep1Page extends FSSUserAgent
         nvps.add(new BasicNameValuePair("iBankFormSubmission", "true"));
         nvps.add(new BasicNameValuePair("_target1.x", "43"));
         nvps.add(new BasicNameValuePair("_target1.y", "15"));
-        Log.debug((new StringBuilder()).append("Clicking 'Add new Payee Step 1' with ").append(nvps.toString()).toString());
+        log.debug((new StringBuilder()).append("Clicking 'Add new Payee Step 1' with ").append(nvps.toString()).toString());
         httppost.setEntity(new UrlEncodedFormEntity(nvps, "ISO-8859-1"));
         HttpResponse response = httpclient.execute(httppost);
         HttpEntity entity = response.getEntity();

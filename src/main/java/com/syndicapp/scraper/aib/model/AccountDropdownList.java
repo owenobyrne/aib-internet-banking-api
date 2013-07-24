@@ -11,40 +11,33 @@ import java.util.Vector;
 // Referenced classes of package com.syndicapp.scraper.aib.model:
 //            AccountDropdownItem
 
-public class AccountDropdownList
-{
+public class AccountDropdownList {
+	private Vector<AccountDropdownItem> accountDropdownItems;
 
-    public AccountDropdownList()
-    {
-        accountDropdownItems = new Vector<AccountDropdownItem>();
-    }
+	public AccountDropdownList() {
+		accountDropdownItems = new Vector<AccountDropdownItem>();
+	}
 
-    public void addAccountDropdownItem(AccountDropdownItem a)
-    {
-        accountDropdownItems.add(a);
-    }
+	public void addAccountDropdownItem(AccountDropdownItem a) {
+		accountDropdownItems.add(a);
+	}
 
-    public AccountDropdownItem getAccountByName(String name)
-    {
-        for(Iterator<AccountDropdownItem> itr = accountDropdownItems.iterator(); itr.hasNext();)
-        {
-            AccountDropdownItem a = (AccountDropdownItem)itr.next();
-            if(a.getAccountName().equalsIgnoreCase(name))
-                return a;
-        }
+	public AccountDropdownItem getAccountByName(String name) {
+		for (Iterator<AccountDropdownItem> itr = accountDropdownItems.iterator(); itr.hasNext();) {
+			AccountDropdownItem a = (AccountDropdownItem) itr.next();
+			if (a.getAccountName().equalsIgnoreCase(name))
+				return a;
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    public Vector<AccountDropdownItem> getAccountDropdownItems()
-    {
-        return accountDropdownItems;
-    }
+	public Vector<AccountDropdownItem> getAccountDropdownItems() {
+		return accountDropdownItems;
+	}
 
-    public void setAccountDropdownItems(Vector<AccountDropdownItem> accountDropdownItems)
-    {
-        this.accountDropdownItems = accountDropdownItems;
-    }
+	public void setAccountDropdownItems(Vector<AccountDropdownItem> accountDropdownItems) {
+		this.accountDropdownItems = accountDropdownItems;
+	}
 
-    private Vector<AccountDropdownItem> accountDropdownItems;
 }

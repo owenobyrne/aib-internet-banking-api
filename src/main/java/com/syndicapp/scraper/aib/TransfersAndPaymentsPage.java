@@ -39,7 +39,7 @@ public class TransfersAndPaymentsPage extends FSSUserAgent
         List nvps = new ArrayList();
         nvps.add(new BasicNameValuePair("isFormButtonClicked", "true"));
         nvps.add(new BasicNameValuePair("transactionToken", transactionToken));
-        Log.debug((new StringBuilder()).append("Clicking 'Transfers and Payments' with ").append(nvps.toString()).toString());
+        log.debug((new StringBuilder()).append("Clicking 'Transfers and Payments' with ").append(nvps.toString()).toString());
         httppost.setEntity(new UrlEncodedFormEntity(nvps, "ISO-8859-1"));
         HttpResponse response = httpclient.execute(httppost);
         HttpEntity entity = response.getEntity();

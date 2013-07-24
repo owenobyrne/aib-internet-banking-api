@@ -28,7 +28,7 @@ public class LoginPage extends FSSUserAgent
         HttpResponse response = httpclient.execute(httpget);
         org.apache.http.HttpEntity entity = response.getEntity();
         String page = EntityUtils.toString(entity);
-        Log.debug(page);
+        log.debug(page);
         bundle.put("page", page);
         return bundle;
     }

@@ -43,7 +43,7 @@ public class AccountOverviewPage extends FSSUserAgent
         List<BasicNameValuePair> nvps = new ArrayList<BasicNameValuePair>();
         nvps.add(new BasicNameValuePair("transactionToken", transactionToken));
         nvps.add(new BasicNameValuePair("iBankFormSubmission", "true"));
-        Log.debug((new StringBuilder()).append("Clicking 'Account Overview' with ").append(nvps.toString()).toString());
+        log.debug((new StringBuilder()).append("Clicking 'Account Overview' with ").append(nvps.toString()).toString());
         httppost.setEntity(new UrlEncodedFormEntity(nvps, Consts.UTF_8));
         HttpResponse response = httpclient.execute(httppost);
         HttpEntity entity = response.getEntity();
