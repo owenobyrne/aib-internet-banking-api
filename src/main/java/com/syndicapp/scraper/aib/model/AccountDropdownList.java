@@ -32,6 +32,15 @@ public class AccountDropdownList {
 		return null;
 	}
 
+	public AccountDropdownItem getAccountById(String index) {
+		if (index == null) {
+			return accountDropdownItems.get(0);
+		} else {
+			int i = Integer.parseInt(index);
+			return accountDropdownItems.get(i);
+		}
+	}
+
 	public Vector<AccountDropdownItem> getAccountDropdownItems() {
 		return accountDropdownItems;
 	}

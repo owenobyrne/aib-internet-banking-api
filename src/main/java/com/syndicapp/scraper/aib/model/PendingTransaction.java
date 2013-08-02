@@ -11,9 +11,10 @@ public class PendingTransaction {
 	static Logger Log = Logger.getLogger(PendingTransaction.class);
 	String narrative;
 	String amount;
+	String account;
 	boolean isDR;
 
-	public PendingTransaction(String n, String amount, String dr) {
+	public PendingTransaction(String n, String amount, String dr, String account) {
 		narrative = n;
 		
 		if ("".equals(dr)) {
@@ -23,6 +24,7 @@ public class PendingTransaction {
 		}
 		
 		this.amount = amount;
+		this.account = account;
 		Log.debug(toString());
 	}
 
@@ -39,6 +41,10 @@ public class PendingTransaction {
 		return amount;
 	}
 
+	public String getAccount() {
+		return account;
+	}
+
 	public boolean getIsDR() {
 		return isDR;
 	}
@@ -49,6 +55,10 @@ public class PendingTransaction {
 
 	public void setAmount(String amount) {
 		this.amount = amount;
+	}
+
+	public void setAccount(String account) {
+		this.account = account;
 	}
 
 	public void setDR(boolean isDR) {

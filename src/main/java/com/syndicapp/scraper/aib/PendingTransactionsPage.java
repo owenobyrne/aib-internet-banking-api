@@ -92,7 +92,7 @@ public class PendingTransactionsPage extends FSSUserAgent {
 		PendingTransactionList pendingTransactions = new PendingTransactionList();
 		PendingTransaction t = null;
 		while (m.find()) {
-			t = new PendingTransaction(m.group(1), m.group(2), m.group(3));
+			t = new PendingTransaction(m.group(1), m.group(2), m.group(3), addl.getAccountById((String)inputParams.get("index")).getAccountName());
 			pendingTransactions.addTransaction(t);
 			log.info("Added: " + t.getNarrative());
 		}
