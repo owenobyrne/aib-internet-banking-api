@@ -83,7 +83,7 @@ public class StatementPage extends FSSUserAgent {
 			if (m.group(4).toLowerCase().contains("interest rate")) {
 				t = new Transaction(new GregorianCalendar(2000 + Integer.parseInt(m.group(3)),
 						Integer.parseInt(m.group(2)) - 1, Integer.parseInt(m.group(1))),
-						"New Interest Rate", m.group(5), m.group(6), m.group(7));
+						"New Interest Rate", "0.00", "", m.group(7));
 				transactions.addTransaction(t);
 				log.debug("Added new interest rate: " + t.getNarrative());
 			} else if (t != null && "".equals(m.group(5)) && "".equals(m.group(6))) {
