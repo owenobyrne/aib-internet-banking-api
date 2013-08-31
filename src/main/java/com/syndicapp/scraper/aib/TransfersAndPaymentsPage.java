@@ -5,52 +5,53 @@
 
 package com.syndicapp.scraper.aib;
 
-import com.syndicapp.scraper.FSSUserAgent;
-import com.syndicapp.scraper.exception.UnexpectedPageContentsException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-import org.apache.log4j.Logger;
 
-public class TransfersAndPaymentsPage extends FSSUserAgent
-{
+import com.syndicapp.scraper.FSSUserAgent;
+import com.syndicapp.scraper.exception.UnexpectedPageContentsException;
 
-    public TransfersAndPaymentsPage()
-    {
-    }
+public class TransfersAndPaymentsPage extends FSSUserAgent {
 
-    public static HashMap click(String page, HashMap inputParams)
-        throws Exception
-    {
-        HashMap outputParams = new HashMap();
-        String transactionToken = null;
-        Pattern p = Pattern.compile("action=\"transfersandpaymentslanding.htm\" method=\"post\"><input type=\"hidden\" name=\"isFormButtonClicked\" value=\"false\" /><input type=\"hidden\" name=\"transactionToken\" id=\"transactionToken\" value=\"(\\d+)\"/>");
-        for(Matcher m = p.matcher(page); m.find();)
-            transactionToken = m.group(1);
+	public TransfersAndPaymentsPage() {
+	}
 
-        HttpPost httppost = new HttpPost("https://aibinternetbanking.aib.ie/inet/roi/transfersandpaymentslanding.htm");
-        List nvps = new ArrayList();
-        nvps.add(new BasicNameValuePair("isFormButtonClicked", "true"));
-        nvps.add(new BasicNameValuePair("transactionToken", transactionToken));
-        log.debug((new StringBuilder()).append("Clicking 'Transfers and Payments' with ").append(nvps.toString()).toString());
-        httppost.setEntity(new UrlEncodedFormEntity(nvps, "ISO-8859-1"));
-        HttpResponse response = httpclient.execute(httppost);
-        HttpEntity entity = response.getEntity();
-        page = EntityUtils.toString(entity);
-        if(!page.contains("What sort of transfer or payment do you want to make?"))
-        {
-            throw new UnexpectedPageContentsException("Didn't get to the Transfers and Payments Page!");
-        } else
-        {
-            outputParams.put("page", page);
-            return outputParams;
-        }
-    }
+	public static HashMap<String, Object> click(String page, HashMap<String, Object> inputParams)
+			throws Exception {
+		HashMap<String, Object> outputParams = new HashMap<String, Object>();
+		String transactionToken = null;
+		Pattern p = Pattern
+				.compile("action=\"transfersandpaymentslanding.htm\" method=\"post\"><input type=\"hidden\" name=\"isFormButtonClicked\" value=\"false\" /><input type=\"hidden\" name=\"transactionToken\" id=\"transactionToken\" value=\"(\\d+)\"/>");
+		for (Matcher m = p.matcher(page); m.find();)
+			transactionToken = m.group(1);
+
+		HttpPost httppost = new HttpPost(
+				"https://aibinternetbanking.aib.ie/inet/roi/transfersandpaymentslanding.htm");
+		List<BasicNameValuePair> nvps = new ArrayList<BasicNameValuePair>();
+		nvps.add(new BasicNameValuePair("isFormButtonClicked", "true"));
+		nvps.add(new BasicNameValuePair("transactionToken", transactionToken));
+		log.fatal((new StringBuilder()).append("Clicking 'Transfers and Payments' with ")
+				.append(nvps.toString()).toString());
+		httppost.setEntity(new UrlEncodedFormEntity(nvps, "ISO-8859-1"));
+		HttpResponse response = httpclient.execute(httppost);
+		HttpEntity entity = response.getEntity();
+		page = EntityUtils.toString(entity);
+		if (!page.contains("What sort of transfer or payment do you want to make?")) {
+			throw new UnexpectedPageContentsException(
+					"Didn't get to the Transfers and Payments Page!");
+		} else {
+			outputParams.put("page", page);
+			return outputParams;
+		}
+	}
 }

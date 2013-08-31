@@ -1,5 +1,6 @@
 package com.owenobyrne.aibibs.services;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -13,6 +14,10 @@ import com.syndicapp.scraper.aib.PACAndChallengePage;
 import com.syndicapp.scraper.aib.PendingTransactionsPage;
 import com.syndicapp.scraper.aib.RegistrationNumberPage;
 import com.syndicapp.scraper.aib.StatementPage;
+import com.syndicapp.scraper.aib.TransferBetweenMyOwnAccountsConfirmationPage;
+import com.syndicapp.scraper.aib.TransferBetweenMyOwnAccountsPage;
+import com.syndicapp.scraper.aib.TransferBetweenMyOwnAccountsStep1Page;
+import com.syndicapp.scraper.aib.TransfersAndPaymentsPage;
 import com.syndicapp.scraper.aib.model.AccountDropdownItem;
 import com.syndicapp.scraper.aib.model.AccountDropdownList;
 import com.syndicapp.scraper.aib.model.PendingTransaction;
@@ -95,20 +100,20 @@ public class AibInternetBankingService {
 		HashMap<String, Object> objectOutput = new HashMap<String, Object>();
 		try {
 			objectOutput = StatementPage.click(page, input);
-			AccountDropdownList adl = (AccountDropdownList)objectOutput.get("accounts");
+			AccountDropdownList adl = (AccountDropdownList) objectOutput.get("accounts");
 			AccountDropdownItem a = adl.getAccountByName(accountName);
-				
+
 			log.info("Wanted: " + accountName + ", got " + a.getAccountName());
-			
+
 			// Check if we are looking for the first account or not
 			if (!a.getAccountId().equals("0")) {
 				// Select the right account from the dropdown list.
 				input.put("index", a.getAccountId());
 				objectOutput = StatementPage.click((String) objectOutput.get("page"), input);
 			}
-			
+
 			TransactionList tl = (TransactionList) objectOutput.get("transactions");
-			
+
 			// Return to the home page.
 			objectOutput = AccountOverviewPage.click((String) objectOutput.get("page"), null);
 			objectOutput.put("transactions", tl);
@@ -122,31 +127,33 @@ public class AibInternetBankingService {
 		return objectOutput;
 	}
 
-
 	public HashMap<String, Object> getPendingTransactionsForAccount(String page, String accountName) {
 		HashMap<String, Object> input = new HashMap<String, Object>();
 		HashMap<String, Object> objectOutput = new HashMap<String, Object>();
 		try {
 			objectOutput = StatementPage.click(page, input);
 			objectOutput = PendingTransactionsPage.click((String) objectOutput.get("page"), input);
-			
-			AccountDropdownList adl = (AccountDropdownList)objectOutput.get("accounts");
+
+			AccountDropdownList adl = (AccountDropdownList) objectOutput.get("accounts");
 			AccountDropdownItem a = adl.getAccountByName(accountName);
-			
+
 			// Check if we are looking for the first account or not
 			if (!a.getAccountId().equals("0")) {
 				// Select the right account from the dropdown list.
 				input.put("index", a.getAccountId());
-				objectOutput = PendingTransactionsPage.click((String) objectOutput.get("page"), input);
+				objectOutput = PendingTransactionsPage.click((String) objectOutput.get("page"),
+						input);
 			}
-			
-			Vector<PendingTransaction> t = (Vector<PendingTransaction>) objectOutput.get("pendingtransactions");
-			
+
+			@SuppressWarnings("unchecked")
+			Vector<PendingTransaction> t = (Vector<PendingTransaction>) objectOutput
+					.get("pendingtransactions");
+
 			// Return to the home page.
 			objectOutput = AccountOverviewPage.click((String) objectOutput.get("page"), null);
-			
+
 			objectOutput.put("pendingtransactions", t);
-			
+
 			return objectOutput;
 		} catch (UnexpectedPageContentsException upce) {
 			log.fatal((new StringBuilder()).append("Error with click(): ")
@@ -157,8 +164,51 @@ public class AibInternetBankingService {
 		return objectOutput;
 	}
 
-	public void setupPayerAndTransfer(Long long1, String s, String s1, String s2) {
+	public HashMap<String, Object> transferBetweenAccounts(String page, 
+			String accountNameFrom, 
+			String accountNameTo, 
+			String narrativeFrom,
+			String narrativeTo,
+			BigDecimal amount,
+			String pinDigits) {
+		HashMap<String, Object> input = new HashMap<String, Object>();
+		HashMap<String, Object> output = new HashMap<String, Object>();
+
+		try {			
+			output = TransfersAndPaymentsPage.click(page, input);
+			output = TransferBetweenMyOwnAccountsPage.click((String) output.get("page"), input);
+
+			AccountDropdownItem aFrom = ((AccountDropdownList) output.get("accountsFrom"))
+					.getAccountByName(accountNameFrom);
+			AccountDropdownItem aTo = ((AccountDropdownList) output.get("accountsTo"))
+					.getAccountByName(accountNameTo);
+
+			BigDecimal[] amountBits = amount.divideAndRemainder(new BigDecimal("1.0"));
+
+			input.put("fromAccount", aFrom.getAccountId());
+			input.put("senderReference", narrativeFrom.substring(0,  12));
+			input.put("toAccount", aTo.getAccountId());
+			input.put("receiverReference", narrativeTo.substring(0,  18));
+			input.put("amounteuro", String.format("%d", amountBits[0].intValue()));
+			input.put("amountcent", String.format("%02d", amountBits[1].multiply(new BigDecimal("100.0")).intValue()));
+
+			output = TransferBetweenMyOwnAccountsStep1Page.click((String)output.get("page"), input);
+			
+			String[] digits = pinDigits.split("");
+			input.put("digit", digits[Integer.parseInt((String)output.get("digitRequested"))]);
+			output = TransferBetweenMyOwnAccountsConfirmationPage.click((String)output.get("page"), input);
+
+			output = AccountOverviewPage.click((String)output.get("page"), input);
+
+		} catch (Exception e) {
+			log.fatal(e);
+			e.printStackTrace();
+		}
+		return output;
+
 	}
 
+	public void setupPayerAndTransfer(Long long1, String s, String s1, String s2) {
+	}
 
 }
