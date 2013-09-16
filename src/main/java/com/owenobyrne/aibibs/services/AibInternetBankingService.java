@@ -186,9 +186,9 @@ public class AibInternetBankingService {
 			BigDecimal[] amountBits = amount.divideAndRemainder(new BigDecimal("1.0"));
 
 			input.put("fromAccount", aFrom.getAccountId());
-			input.put("senderReference", narrativeFrom.substring(0,  12));
+			input.put("senderReference", (narrativeFrom.length() > 12 ? narrativeFrom.substring(0,  12) : narrativeFrom));
 			input.put("toAccount", aTo.getAccountId());
-			input.put("receiverReference", narrativeTo.substring(0,  18));
+			input.put("receiverReference", (narrativeTo.length() > 18 ? narrativeTo.substring(0,  18) : narrativeTo));
 			input.put("amounteuro", String.format("%d", amountBits[0].intValue()));
 			input.put("amountcent", String.format("%02d", amountBits[1].multiply(new BigDecimal("100.0")).intValue()));
 
