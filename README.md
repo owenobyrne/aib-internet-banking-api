@@ -306,5 +306,5 @@ $ curl $API_BASE/v1/logout?sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99
 ```
 
 -------------------------
-[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/86752651125cd250b51190c2d3295a88 "githalytics.com")](http://githalytics.com/owenobyrne/aib-internet-banking-api)
+![githalytics.com alpha](https://cruel-carlota.pagodabox.com/86752651125cd250b51190c2d3295a88 "githalytics.com")
 
