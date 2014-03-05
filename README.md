@@ -6,6 +6,7 @@ Screenscraping a banking website requires very accurate immitation of a real use
 
 To achieve this with the AIB Online Banking site, my strategy is to always bring the browsing session back to a "home" page and store that page HTML in a datastore (currently Cassandra, for no reason other than I was experimenting with it). As each API call comes through, I navigate from this known state to the pages required and then back to the home page. This makes some API calls a bit slower than you would desire, but it's easier than trying to maintain a state engine that knows where you are and how to get the desire page from there all the time. 
 
+Unfortunately, I've hard coded the IP of the Cassandra DB into `/src/main/java/com/owenobyrne/aibibs/services/CassandraService.java` - I'll change this to a config item soon, but currently you'll need to edit line 42 to match your Cassandra install. 
 ### Authentication
 Once you interact with the site initially it assigns a `JSESSIONID` cookie that must be maintained for the rest of the session. I store this in the datastore with the page contents, and create a completely independent UUID Session ID for the API to use. This keeps your actual session ID secret which is good for security reasons. 
 
