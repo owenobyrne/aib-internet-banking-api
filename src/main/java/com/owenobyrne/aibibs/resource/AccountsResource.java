@@ -17,12 +17,12 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.cassandra.thrift.Cassandra.login_args;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.owenobyrne.aibibs.services.AibInternetBankingService;
-import com.owenobyrne.aibibs.services.CassandraService;
+import com.owenobyrne.aibibs.services.StorageService;
 import com.syndicapp.scraper.aib.model.PendingTransaction;
 
 @Path("/accounts")
@@ -40,7 +40,8 @@ public class AccountsResource {
 	@Autowired
 	AibInternetBankingService aibibs;
 	@Autowired
-	CassandraService cassandra;
+	@Qualifier("mapDBService")
+	StorageService storage;
 
 	@Path("/balances")
 	@GET
@@ -50,17 +51,17 @@ public class AccountsResource {
 			) {
 
 		//String sessionId = (String) pacParams.getFirst("SESSION_ID");
-		String page = cassandra.getData(CassandraService.CF_SESSIONS, sessionId, "page");
+		String page = storage.getData(sessionId);
 
 		if (page != null) {
 			HashMap<String, Object> response = aibibs.getAccountBalances(page);
-			cassandra.addData(CassandraService.CF_SESSIONS, sessionId, "page",
+			storage.addData(sessionId, 
 					(String) response.get("page"), 390);
 			//response.put("sessionId", sessionId);
 			response.remove("page");
 			return response;
 		} else {
-			cassandra.deleteData(CassandraService.CF_SESSIONS, sessionId);
+			storage.deleteData(sessionId);
 			HashMap<String, Object> r = new HashMap<String, Object>();
 			r.put("error", "Session has expired");
 			return r;
@@ -76,10 +77,10 @@ public class AccountsResource {
 		) {
 
 		//String sessionId = params.getFirst("SESSION_ID");
-		String page = cassandra.getData(CassandraService.CF_SESSIONS, sessionId, "page");
+		String page = storage.getData(sessionId);
 		if (page != null) {
 			HashMap<String, Object> response = aibibs.getTransactionsForAccount(page, accountName);
-			cassandra.addData(CassandraService.CF_SESSIONS, sessionId, "page",
+			storage.addData(sessionId,
 					(String) response.get("page"), 390);
 			//response.put("sessionId", sessionId);
 			response.remove("page");
@@ -87,7 +88,7 @@ public class AccountsResource {
 			response.remove("balances");
 			return response;
 		} else {
-			cassandra.deleteData(CassandraService.CF_SESSIONS, sessionId);
+			storage.deleteData(sessionId);
 			HashMap<String, Object> r = new HashMap<String, Object>();
 			r.put("error", "Session has expired");
 			return r;
@@ -105,7 +106,7 @@ public class AccountsResource {
 			MultivaluedMap<String, String> transferParams
 		) {
 
-		String page = cassandra.getData(CassandraService.CF_SESSIONS, sessionId, "page");
+		String page = storage.getData(sessionId);
 		if (page != null) {
 			
 			String narrativeFrom = transferParams.getFirst("narrativeFrom");
@@ -122,7 +123,7 @@ public class AccountsResource {
 					pinDigits);
 
 			
-			cassandra.addData(CassandraService.CF_SESSIONS, sessionId, "page",
+			storage.addData(sessionId,
 					(String) response.get("page"), 390);
 			
 			response.remove("page");
@@ -130,7 +131,7 @@ public class AccountsResource {
 			response.remove("balances");
 			return response;
 		} else {
-			cassandra.deleteData(CassandraService.CF_SESSIONS, sessionId);
+			storage.deleteData(sessionId);
 			HashMap<String, Object> r = new HashMap<String, Object>();
 			r.put("error", "Session has expired");
 			return r;
@@ -145,15 +146,15 @@ public class AccountsResource {
 			@PathParam(value = "accountName") String accountName
 		) {
 
-		String page = cassandra.getData(CassandraService.CF_SESSIONS, sessionId, "page");
+		String page = storage.getData(sessionId);
 		if (page != null) {
 			HashMap<String, Object> response = aibibs.getPendingTransactionsForAccount(page, accountName);
-			cassandra.addData(CassandraService.CF_SESSIONS, sessionId, "page",
+			storage.addData(sessionId,
 					(String) response.get("page"), 390);
 			
 			return (Vector<PendingTransaction>)response.get("pendingtransactions");
 		} else {
-			cassandra.deleteData(CassandraService.CF_SESSIONS, sessionId);
+			storage.deleteData(sessionId);
 			response.setHeader("X-AIBAPI-Error", "Session has expired");
 			return null;
 		}

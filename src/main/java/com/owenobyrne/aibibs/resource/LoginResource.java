@@ -13,11 +13,12 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.UriInfo;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.eaio.uuid.UUID;
 import com.owenobyrne.aibibs.services.AibInternetBankingService;
-import com.owenobyrne.aibibs.services.CassandraService;
+import com.owenobyrne.aibibs.services.StorageService;
 
 @Path("/login")
 @Component
@@ -31,7 +32,8 @@ public class LoginResource {
 	@Autowired
 	AibInternetBankingService aibibs;
 	@Autowired
-	CassandraService cassandra;
+	@Qualifier("mapDBService") 
+	StorageService storage;
 	
 	@Path("/registration")
 	@POST
@@ -43,8 +45,7 @@ public class LoginResource {
 				.getFirst("REGISTRATION_NUMBER");
 		HashMap<String, Object> response = aibibs.enterRegistrationNumber(registrationNumber);
 		UUID sessionId = new UUID();
-		cassandra.addData(CassandraService.CF_SESSIONS, sessionId.toString(),
-				"page", (String) response.get("page"), 390);
+		storage.addData(sessionId.toString(), (String) response.get("page"), 390);
 		response.put("sessionId", sessionId.toString());
 		response.remove("page");
 		return response;
@@ -62,15 +63,15 @@ public class LoginResource {
 		String pac3 = (String) pacParams.getFirst("PAC3");
 		String digits = (String) pacParams.getFirst("DIGITS");
 		//String sessionId = (String) pacParams.getFirst("SESSION_ID");
-		String page = cassandra.getData(CassandraService.CF_SESSIONS,sessionId, "page");
+		String page = storage.getData(sessionId);
 		if (page != null) {
 			HashMap<String, Object> response = aibibs.enterPACDigits(page, pac1, pac2, pac3, digits);
-			cassandra.addData(CassandraService.CF_SESSIONS, sessionId, "page", (String) response.get("page"), 390);
+			storage.addData(sessionId, (String) response.get("page"), 390);
 			//response.put("sessionId", sessionId);
 			response.remove("page");
 			return response;
 		} else {
-			cassandra.deleteData(CassandraService.CF_SESSIONS, sessionId);
+			storage.deleteData(sessionId);
 			HashMap<String, Object> r = new HashMap<String, Object>();
 			r.put("error", "Session has expired");
 			return r;

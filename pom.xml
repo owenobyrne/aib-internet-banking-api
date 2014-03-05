@@ -10,6 +10,7 @@
 
 	<properties>
 		<spring.version>3.2.1.RELEASE</spring.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.mainClass>com.owenobyrne.aibibs.Main</project.mainClass>
 	</properties>
 
@@ -24,19 +25,16 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
 			<version>${spring.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-aop</artifactId>
 			<version>${spring.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
 			<version>${spring.version}</version>
-			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
 					<artifactId>spring-aop</artifactId>
@@ -48,13 +46,11 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-dao</artifactId>
 			<version>2.0.8</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
 			<version>${spring.version}</version>
-			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
 					<artifactId>spring-aop</artifactId>
@@ -66,25 +62,21 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 			<version>${spring.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 			<version>1.2.17</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 			<version>4.2</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.jersey.contribs</groupId>
 			<artifactId>jersey-spring</artifactId>
 			<version>1.17</version>
-			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
 					<groupId>org.springframework</groupId>
@@ -116,7 +108,6 @@
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-json</artifactId>
 			<version>1.17</version>
-			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
 					<artifactId>stax-api</artifactId>
@@ -128,7 +119,6 @@
 	<groupId>com.netflix.astyanax</groupId>
 	<artifactId>astyanax</artifactId>
 	<version>1.56.26</version>
-	<scope>provided</scope>
 	<exclusions>
 		<exclusion>
 			<artifactId>antlr</artifactId>
@@ -143,6 +133,11 @@
 			<groupId>javax.servlet</groupId>
 		</exclusion>
 	</exclusions>
+</dependency>
+<dependency>
+    <groupId>org.mapdb</groupId>
+    <artifactId>mapdb</artifactId>
+    <version>0.9.10</version>
 </dependency>
 	</dependencies>
 	<build>

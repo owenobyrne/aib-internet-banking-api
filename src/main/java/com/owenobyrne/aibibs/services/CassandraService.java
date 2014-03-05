@@ -25,9 +25,14 @@ import com.netflix.astyanax.model.ColumnList;
 import com.netflix.astyanax.serializers.StringSerializer;
 import com.netflix.astyanax.thrift.ThriftFamilyFactory;
 
-@Service
-public class CassandraService
-{
+// If you want to use this implementation uncomment the annotation below and 
+// change the @Qualifier in the *Resource classes to "cassandraStorage"
+//@Service
+public class CassandraService implements StorageService {
+
+    private Keyspace keyspace;
+    private AstyanaxContext<Keyspace> context;
+    public static ColumnFamily<String, String> CF_SESSIONS = new ColumnFamily<String, String>("Sessions", StringSerializer.get(), StringSerializer.get());
 
 	@PreDestroy
     public void cleanUp() throws Exception {
@@ -54,10 +59,10 @@ public class CassandraService
         this.keyspace = keyspace;
     }
 
-    public void addData(ColumnFamily<String, String> cf, String row, String column, String value, int ttl)
+    public void addData(String key, String value, int ttl)
     {
         MutationBatch mb = keyspace.prepareMutationBatch();
-        mb.withRow(cf, row).putColumn(column, value, Integer.valueOf(ttl));
+        mb.withRow(CF_SESSIONS, key).putColumn("page", value, Integer.valueOf(ttl));
         
         try
         {
@@ -69,29 +74,29 @@ public class CassandraService
         }
     }
 
-    public String getData(ColumnFamily<String, String> cf, String row, String column)
+    public String getData(String row)
     {
         OperationResult<ColumnList<String>> result = null;
         try
         {
-            result = keyspace.prepareQuery(cf).getKey(row).execute();
+            result = keyspace.prepareQuery(CF_SESSIONS).getKey(row).execute();
         }
         catch(ConnectionException e1)
         {
             e1.printStackTrace();
         }
         ColumnList<String> columns = (ColumnList<String>)result.getResult();
-        Column<String> c = columns.getColumnByName(column);
+        Column<String> c = columns.getColumnByName("page");
         String value = null;
         if(c != null)
             value = c.getStringValue();
         return value;
     }
 
-    public void deleteData(ColumnFamily<String, String> cf, String row)
+    public void deleteData(String row)
     {
         MutationBatch mb = keyspace.prepareMutationBatch();
-        mb.withRow(cf, row).delete();
+        mb.withRow(CF_SESSIONS, row).delete();
         
         try
         {
@@ -99,9 +104,5 @@ public class CassandraService
         }
         catch(ConnectionException e) { }
     }
-
-    private Keyspace keyspace;
-    private AstyanaxContext<Keyspace> context;
-    public static ColumnFamily<String, String> CF_SESSIONS = new ColumnFamily<String, String>("Sessions", StringSerializer.get(), StringSerializer.get());
 
 }
