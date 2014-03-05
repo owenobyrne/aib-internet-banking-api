@@ -23,7 +23,7 @@ maintained for the rest of the session. I store this in the datastore with the p
 and create a completely independent UUID Session ID for the API to use. This keeps your actual 
 session ID secret which is good for security reasons. 
 
-The API Session ID is returned from the first API call `/v1/login/register` and must be sent 
+The API Session ID is returned from the first API call `/v1/login/registration` and must be sent 
 as a query string parameter to all subsequent API calls. E.g.
 
 ```
