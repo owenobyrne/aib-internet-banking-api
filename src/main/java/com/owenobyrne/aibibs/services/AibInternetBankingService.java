@@ -12,6 +12,7 @@ import com.syndicapp.scraper.aib.LoginPage;
 import com.syndicapp.scraper.aib.LogoutPage;
 import com.syndicapp.scraper.aib.PACAndChallengePage;
 import com.syndicapp.scraper.aib.PendingTransactionsPage;
+import com.syndicapp.scraper.aib.PostLoginInformationPage;
 import com.syndicapp.scraper.aib.RegistrationNumberPage;
 import com.syndicapp.scraper.aib.StatementPage;
 import com.syndicapp.scraper.aib.TransferBetweenMyOwnAccountsConfirmationPage;
@@ -61,6 +62,13 @@ public class AibInternetBankingService {
 			input.put("pacDetails.pacDigit3", pac3);
 			input.put("challengeDetails.challengeEntered", digits);
 			output = PACAndChallengePage.click(page, input);
+			
+			if ((Boolean)output.get("infoPage")) {
+				// there's a post login info page!
+				log.info("There's a Post-Login Information page - attempting to click through...");
+				output = PostLoginInformationPage.click((String)output.get("page"), null);	
+			} 
+			
 		} catch (UnexpectedPageContentsException upce) {
 			log.fatal((new StringBuilder()).append("Error with click(): ")
 					.append(upce.getMessage()).toString());

@@ -36,7 +36,8 @@ public class AccountOverviewPage extends FSSUserAgent
         HashMap<String, Object> outputParams = new HashMap<String, Object>();
         String transactionToken = null;
         Pattern p = Pattern.compile("accountoverview.htm\" method=\"post\"><input type=\"hidden\" name=\"isFormButtonClicked\" value=\"false\" /><input type=\"hidden\" name=\"transactionToken\" id=\"transactionToken\" value=\"(\\d+)\"");
-        for(Matcher m = p.matcher(page); m.find();)
+        						
+        for(Matcher m = p.matcher(page); m.find();) 
             transactionToken = m.group(1);
 
         HttpPost httppost = new HttpPost("https://aibinternetbanking.aib.ie/inet/roi/accountoverview.htm");

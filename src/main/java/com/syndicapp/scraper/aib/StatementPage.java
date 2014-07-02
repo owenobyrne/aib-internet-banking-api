@@ -43,11 +43,13 @@ public class StatementPage extends FSSUserAgent {
 			nvps.add(new BasicNameValuePair("index", (String) inputParams.get("index")));
 			log.debug("Clicked the drop down");
 			p = Pattern
-					.compile("action=\"statement.htm\" method=\"POST\" onsubmit=\"return isClickEnabled\\(\\)\">\\s*<div>\\s*<label>Change account:\\s*<select id=\"index\" name=\"index\">\\s*(.*?)\\s*</select>\\s*</label>\\s*<input type=\"hidden\" name=\"transactionToken\" id=\"transactionToken\" value=\"(\\d+)\"/>");
+					.compile("action=\"statement.htm\" method=\"POST\" onsubmit=\"return isFormClickEnabled\\(accountForm\\)\">\\s*<div>\\s*<label>Account:\\s*<select id=\"index\" name=\"index\" onchange=\"submitClickableForm\\(accountForm\\);\">\\s*(.*?)\\s*</select>\\s*</label>\\s*<input type=\"hidden\" name=\"transactionToken\" id=\"transactionToken\" value=\"(\\d+)\"/>");
+		
 			m = p.matcher(page);
 			if (m.find())
 				transactionToken = m.group(2);
 			nvps.add(new BasicNameValuePair("isFormButtonClicked", "true"));
+			nvps.add(new BasicNameValuePair("iBankFormSubmission", "true"));
 			nvps.add(new BasicNameValuePair("transactionToken", transactionToken));
 		} else {
 			log.debug("Clicked the left menu");
