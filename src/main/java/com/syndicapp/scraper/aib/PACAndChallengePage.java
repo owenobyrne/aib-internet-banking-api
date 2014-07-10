@@ -70,7 +70,7 @@ public class PACAndChallengePage extends FSSUserAgent {
             
         } else {
             outputParams.put("page", page);
-            outputParams.put("infoPage", false);
+            //outputParams.put("infoPage", false);
             
             ArrayList<Account> accounts = PageUtils.parseBalances(page);
             outputParams.put("balances", accounts);
