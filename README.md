@@ -15,7 +15,7 @@ implementation of a `StorageService` if you prefer - there's a sample Cassandra 
 included too). As each API call comes through, I navigate from this known state to the pages required and then 
 back to the home page. This makes some API calls a bit slower than you would desire, but 
 it's easier than trying to maintain a state engine that knows where you are and how to get 
-the desire page from there all the time. 
+the desired page from there all the time. 
 
 ### Authentication
 Once you interact with the site initially it assigns a `JSESSIONID` cookie that must be 
