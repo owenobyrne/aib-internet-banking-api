@@ -31,6 +31,7 @@ public class LoginResource {
 	
 	@Autowired
 	AibInternetBankingService aibibs;
+	
 	@Autowired
 	@Qualifier("mapDBService") 
 	StorageService storage;
@@ -58,23 +59,25 @@ public class LoginResource {
 	public HashMap<String, Object> enterPACDigits(
 			@QueryParam("sessionId") String sessionId,
 			MultivaluedMap<String, String> pacParams) {
+		
 		String pac1 = (String) pacParams.getFirst("PAC1");
 		String pac2 = (String) pacParams.getFirst("PAC2");
 		String pac3 = (String) pacParams.getFirst("PAC3");
 		String digits = (String) pacParams.getFirst("DIGITS");
-		//String sessionId = (String) pacParams.getFirst("SESSION_ID");
 		String page = storage.getData(sessionId);
+		
 		if (page != null) {
 			HashMap<String, Object> response = aibibs.enterPACDigits(page, pac1, pac2, pac3, digits);
 			storage.addData(sessionId, (String) response.get("page"), 390);
-			//response.put("sessionId", sessionId);
 			response.remove("page");
 			return response;
+			
 		} else {
 			storage.deleteData(sessionId);
 			HashMap<String, Object> r = new HashMap<String, Object>();
 			r.put("error", "Session has expired");
 			return r;
+			
 		}
 	}
 
