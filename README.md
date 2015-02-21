@@ -2,6 +2,10 @@
 I wanted to be able to access my bank account information from various sources, 
 so I created this screenscraping API for AIB Online Banking. 
 
+This branch (online-banking-v1) is the older (blue) version of AIB Online 
+Banking before the update in 2015. Switch to the Master branch for the 
+new version.
+
 ###Implementation
 Screenscraping a banking website requires very accurate imitation of a real 
 user using a browser. User-Agents are important. The sequence of links you navigate 
