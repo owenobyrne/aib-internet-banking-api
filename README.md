@@ -2,6 +2,9 @@
 I wanted to be able to access my bank account information from various sources, 
 so I created this screenscraping API for AIB Online Banking. 
 
+This version (v2) is the newer version of AIB Online banking (2015). To use the older
+version, checkout branch (online-banking-v1).
+
 ###Implementation
 Screenscraping a banking website requires very accurate imitation of a real 
 user using a browser. User-Agents are important. The sequence of links you navigate 
@@ -23,11 +26,11 @@ maintained for the rest of the session. I store this in the datastore with the p
 and create a completely independent UUID Session ID for the API to use. This keeps your actual 
 session ID secret which is good for security reasons. 
 
-The API Session ID is returned from the first API call `/v1/login/registration` and must be sent 
+The API Session ID is returned from the first API call `/v2/login/registration` and must be sent 
 as a query string parameter to all subsequent API calls. E.g.
 
 ```
-POST /v1/login/pac?sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99
+POST /v2/login/pac?sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99
 ```
 
 ### API
@@ -37,7 +40,7 @@ All API endpoints accept Form Encoded data and return JSON.
 
 | method | path                    |
 |--------|-------------------------|
-| POST   | /v1/login/registration  |
+| POST   | /v2/login/registration  |
 
 ##### Payload
 
@@ -48,14 +51,12 @@ All API endpoints accept Form Encoded data and return JSON.
 ##### Example
 
 ```bash
-$ curl --data "REGISTRATION_NUMBER=12345678" $API_BASE/v1/login/registration
+$ curl --data "REGISTRATION_NUMBER=12345678" $API_BASE/v2/login/registration
 ```
 
 ```json
 {
     "sessionId": "517215a0-8c6a-11e3-97ac-001422f0bc99",
-    "howmuch": "last four digits",
-    "whatvalue": "primary AIB Visa Credit Card",
     "digit2": "3",
     "digit1": "2",
     "digit3": "5"
@@ -67,15 +68,13 @@ $ curl --data "REGISTRATION_NUMBER=12345678" $API_BASE/v1/login/registration
 | name         		| description                                                                   | example value         |
 |-------------------|-------------------------------------------------------------------------------|-----------------------|
 | sessionId     	| The API Session ID for use in subsequent calls    							| {GUID}                |
-| howmuch       	| The text to display or consume regarding how much of the `whatvalue` it wants.| "last four digits"    |
-| whatvalue     	| Which of the Challenge questions you need to answer							| "home phone number"   |
 | digit1, 2, and 3  | Which three digits of your PAC is it looking for.                             | 1,2,3,4 or 5     		|
 
 #### Logging In - Step 2
 
 | method | path                    |
 |--------|-------------------------|
-| POST   | /v1/login/pac 		   |
+| POST   | /v2/login/pac 		   |
 
 ##### Payload
 
@@ -87,7 +86,7 @@ $ curl --data "REGISTRATION_NUMBER=12345678" $API_BASE/v1/login/registration
 ##### Example
 
 ```bash
-$ curl --data "PAC1=2&PAC2=3&PAC3=1&DIGITS=1234" $API_BASE/v1/login/pac?sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99
+$ curl --data "PAC1=2&PAC2=3&PAC3=1" $API_BASE/v2/login/pac?sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99
 
 ```
 
@@ -124,7 +123,7 @@ Gives the same response as Login - Step 2 above.
 
 | method | path                     |
 |--------|--------------------------|
-| GET    | /v1/accounts/balances    |
+| GET    | /v2/accounts/balances    |
 
 ##### Payload
 
@@ -133,7 +132,7 @@ None
 ##### Example
 
 ```bash
-$ curl $API_BASE/v1/accounts/balances?sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99
+$ curl $API_BASE/v2/accounts/balances?sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99
 
 ```
 
@@ -169,7 +168,7 @@ Returns your list of accounts and their balances.
 
 | method | path                    					  |
 |--------|--------------------------------------------|
-| GET    | /v1/accounts/{accountName}/transactions    |
+| GET    | /v2/accounts/{accountName}/transactions    |
 
 ##### Payload
 
@@ -178,7 +177,7 @@ None
 ##### Example
 
 ```bash
-$ curl $API_BASE/v1/accounts/SAVINGS-123/transactions?sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99
+$ curl $API_BASE/v2/accounts/SAVINGS-123/transactions?sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99
 
 ```
 
@@ -213,12 +212,12 @@ Returns the list of transactions for account `accountName`. Not sure why it's wr
 
 
 #### List Pending Transactions for account
-For accounts marked as pending in the response from `/v1/accounts/balances` you can retrieve all pending transactions 
+For accounts marked as pending in the response from `/v2/accounts/balances` you can retrieve all pending transactions 
 using this endpoint.
 
 | method | path                    					  |
 |--------|--------------------------------------------|
-| GET    | /v1/accounts/{accountName}/pending         |
+| GET    | /v2/accounts/{accountName}/pending         |
 
 ##### Payload
 
@@ -227,7 +226,7 @@ None
 ##### Example
 
 ```bash
-$ curl $API_BASE/v1/accounts/CURRENT-123/pending?sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99
+$ curl $API_BASE/v2/accounts/CURRENT-123/pending?sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99
 ```
 
 ```json
@@ -259,7 +258,7 @@ turn this into a two-step API call like the login...
 
 | method | path                    					  				 |
 |--------|-----------------------------------------------------------|
-| POST   | /v1/accounts/{accountNameFrom}/transferTo/{accountNameTo} |
+| POST   | /v2/accounts/{accountNameFrom}/transferTo/{accountNameTo} |
 
 ##### Payload
 
@@ -274,7 +273,7 @@ turn this into a two-step API call like the login...
 
 ```bash
 $ curl -d "narrativeFrom=From me&narrativeTo=to you&amount=20&pinDigits=12345" \
-		$API_BASE/v1/accounts/CURRENT-123/transferTo/SAVINGS-234?sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99
+		$API_BASE/v2/accounts/CURRENT-123/transferTo/SAVINGS-234?sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99
 ```
 
 ```json
@@ -289,7 +288,7 @@ None
 
 | method | path                    |
 |--------|-------------------------|
-| GET    | /v1/logout              |
+| GET    | /v2/logout              |
 
 ##### Payload
 
@@ -298,7 +297,7 @@ None
 ##### Example
 
 ```bash
-$ curl $API_BASE/v1/logout?sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99
+$ curl $API_BASE/v2/logout?sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99
 ```
 
 ```json
