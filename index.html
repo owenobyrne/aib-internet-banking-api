@@ -1,0 +1,650 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>AIB Online Banking API by owenobyrne</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>AIB Online Banking API</h1>
+        <p>A screen scraped API for AIB Internet Banking</p>
+        <p class="view"><a href="https://github.com/owenobyrne/aib-internet-banking-api">View the Project on GitHub <small>owenobyrne/aib-internet-banking-api</small></a></p>
+        <ul>
+          <li><a href="https://github.com/owenobyrne/aib-internet-banking-api/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/owenobyrne/aib-internet-banking-api/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/owenobyrne/aib-internet-banking-api">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h3>
+<a id="aib-online-banking-api" class="anchor" href="#aib-online-banking-api" aria-hidden="true"><span class="octicon octicon-link"></span></a>AIB Online Banking API</h3>
+
+<p>I wanted to be able to access my bank account information from various sources, 
+so I created this screenscraping API for AIB Online Banking. </p>
+
+<p>This version (v2) is the newer version of AIB Online banking (2015). To use the older
+version, checkout branch (online-banking-v1).</p>
+
+<h3>
+<a id="implementation" class="anchor" href="#implementation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Implementation</h3>
+
+<p>Screenscraping a banking website requires very accurate imitation of a real 
+user using a browser. User-Agents are important. The sequence of links you navigate 
+to get to certain information is important. Every link has a one-time-only CSRF token 
+attached that must be used only when clicking that link. </p>
+
+<p>To achieve this with the AIB Online Banking site, my strategy is to always bring the 
+browsing session back to a "home" page and store that page HTML in a datastore 
+(currently <a href="http://www.mapdb.org/">MapDB</a>, for no particular reason. You can replace this with your own 
+implementation of a <code>StorageService</code> if you prefer - there's a sample Cassandra implementation
+included too). As each API call comes through, I navigate from this known state to the pages required and then 
+back to the home page. This makes some API calls a bit slower than you would desire, but 
+it's easier than trying to maintain a state engine that knows where you are and how to get 
+the desired page from there all the time. </p>
+
+<h3>
+<a id="authentication" class="anchor" href="#authentication" aria-hidden="true"><span class="octicon octicon-link"></span></a>Authentication</h3>
+
+<p>Once you interact with the site initially it assigns a <code>JSESSIONID</code> cookie that must be 
+maintained for the rest of the session. I store this in the datastore with the page contents, 
+and create a completely independent UUID Session ID for the API to use. This keeps your actual 
+session ID secret which is good for security reasons. </p>
+
+<p>The API Session ID is returned from the first API call <code>/v2/login/registration</code> and must be sent 
+as a query string parameter to all subsequent API calls. E.g.</p>
+
+<pre><code>POST /v2/login/pac?sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99
+</code></pre>
+
+<h3>
+<a id="api" class="anchor" href="#api" aria-hidden="true"><span class="octicon octicon-link"></span></a>API</h3>
+
+<p>All API endpoints accept Form Encoded data and return JSON.</p>
+
+<h4>
+<a id="logging-in---step-1" class="anchor" href="#logging-in---step-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Logging In - Step 1</h4>
+
+<table>
+<thead>
+<tr>
+<th>method</th>
+<th>path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST</td>
+<td>/v2/login/registration</td>
+</tr>
+</tbody>
+</table>
+
+<h5>
+<a id="payload" class="anchor" href="#payload" aria-hidden="true"><span class="octicon octicon-link"></span></a>Payload</h5>
+
+<table>
+<thead>
+<tr>
+<th>name</th>
+<th>description</th>
+<th>example value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>REGISTRATION_NUMBER</td>
+<td>Your AIB Online Banking Reg Number</td>
+<td>12345678</td>
+</tr>
+</tbody>
+</table>
+
+<h5>
+<a id="example" class="anchor" href="#example" aria-hidden="true"><span class="octicon octicon-link"></span></a>Example</h5>
+
+<div class="highlight highlight-bash"><pre>$ curl --data <span class="pl-s1"><span class="pl-pds">"</span>REGISTRATION_NUMBER=12345678<span class="pl-pds">"</span></span> <span class="pl-vo">$API_BASE</span>/v2/login/registration</pre></div>
+
+<div class="highlight highlight-json"><pre>{
+    <span class="pl-s1"><span class="pl-pds">"</span>sessionId<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>517215a0-8c6a-11e3-97ac-001422f0bc99<span class="pl-pds">"</span></span>,
+    <span class="pl-s1"><span class="pl-pds">"</span>digit2<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>3<span class="pl-pds">"</span></span>,
+    <span class="pl-s1"><span class="pl-pds">"</span>digit1<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>2<span class="pl-pds">"</span></span>,
+    <span class="pl-s1"><span class="pl-pds">"</span>digit3<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>5<span class="pl-pds">"</span></span>
+}</pre></div>
+
+<h5>
+<a id="properties" class="anchor" href="#properties" aria-hidden="true"><span class="octicon octicon-link"></span></a>Properties</h5>
+
+<table>
+<thead>
+<tr>
+<th>name</th>
+<th>description</th>
+<th>example value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>sessionId</td>
+<td>The API Session ID for use in subsequent calls</td>
+<td>{GUID}</td>
+</tr>
+<tr>
+<td>digit1, 2, and 3</td>
+<td>Which three digits of your PAC is it looking for.</td>
+<td>1,2,3,4 or 5</td>
+</tr>
+</tbody>
+</table>
+
+<h4>
+<a id="logging-in---step-2" class="anchor" href="#logging-in---step-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Logging In - Step 2</h4>
+
+<table>
+<thead>
+<tr>
+<th>method</th>
+<th>path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST</td>
+<td>/v2/login/pac</td>
+</tr>
+</tbody>
+</table>
+
+<h5>
+<a id="payload-1" class="anchor" href="#payload-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Payload</h5>
+
+<table>
+<thead>
+<tr>
+<th>name</th>
+<th>description</th>
+<th>example value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DIGITS</td>
+<td>The Challenge digits requested, e.g. of your home phone number</td>
+<td>1234</td>
+</tr>
+<tr>
+<td>PAC1,2,3</td>
+<td>The PAC digits requested. <code>PAC1</code> is the first digit requested specified in <code>digit1</code> from the previous response, not the first digit of your PAC.</td>
+<td>0-9</td>
+</tr>
+</tbody>
+</table>
+
+<h5>
+<a id="example-1" class="anchor" href="#example-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Example</h5>
+
+<div class="highlight highlight-bash"><pre>$ curl --data <span class="pl-s1"><span class="pl-pds">"</span>PAC1=2&amp;PAC2=3&amp;PAC3=1<span class="pl-pds">"</span></span> <span class="pl-vo">$API_BASE</span>/v2/login/pac<span class="pl-k">?</span>sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99
+</pre></div>
+
+<div class="highlight highlight-json"><pre>{
+    <span class="pl-s1"><span class="pl-pds">"</span>balances<span class="pl-pds">"</span></span>: 
+        [{
+            <span class="pl-s1"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span>: <span class="pl-c1">0</span>,
+            <span class="pl-s1"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>SAVINGS-123<span class="pl-pds">"</span></span>,
+            <span class="pl-s1"><span class="pl-pds">"</span>balance<span class="pl-pds">"</span></span>: <span class="pl-c1">1085.42</span>,
+            <span class="pl-s1"><span class="pl-pds">"</span>drcr<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>,
+            <span class="pl-s1"><span class="pl-pds">"</span>transactions<span class="pl-pds">"</span></span>: <span class="pl-c1">null</span>,
+            <span class="pl-s1"><span class="pl-pds">"</span>pending<span class="pl-pds">"</span></span>: <span class="pl-c1">false</span>,
+            <span class="pl-s1"><span class="pl-pds">"</span>dr<span class="pl-pds">"</span></span>: <span class="pl-c1">false</span>
+        }]
+}</pre></div>
+
+<h5>
+<a id="properties-1" class="anchor" href="#properties-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Properties</h5>
+
+<p>The login step returns your list of accounts and their balances.</p>
+
+<table>
+<thead>
+<tr>
+<th>name</th>
+<th>description</th>
+<th>example value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>The ID given to the account in the account list by AIB Online Banking. Doesn't always keep this ID in other situations.</td>
+<td>0</td>
+</tr>
+<tr>
+<td>name</td>
+<td>Name of the account as in AIB Online Banking</td>
+<td>"SAVINGS-123"</td>
+</tr>
+<tr>
+<td>balance</td>
+<td>BigDecimal balance of the account</td>
+<td>100.00</td>
+</tr>
+<tr>
+<td>drcr</td>
+<td>String indication of the debit/credit status of the account.</td>
+<td>"DR"</td>
+</tr>
+<tr>
+<td>transactions</td>
+<td>Can't remember what this is for right now, seems to be null all the time!</td>
+<td>null</td>
+</tr>
+<tr>
+<td>pending</td>
+<td>Whether or not this account can have pending transactions.</td>
+<td>true</td>
+</tr>
+<tr>
+<td>dr</td>
+<td>Boolean indicating the debit or credit status of the balance.</td>
+<td>true</td>
+</tr>
+</tbody>
+</table>
+
+<h4>
+<a id="list-accounts-and-balances" class="anchor" href="#list-accounts-and-balances" aria-hidden="true"><span class="octicon octicon-link"></span></a>List accounts and balances</h4>
+
+<p>Gives the same response as Login - Step 2 above.</p>
+
+<table>
+<thead>
+<tr>
+<th>method</th>
+<th>path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td>/v2/accounts/balances</td>
+</tr>
+</tbody>
+</table>
+
+<h5>
+<a id="payload-2" class="anchor" href="#payload-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Payload</h5>
+
+<p>None</p>
+
+<h5>
+<a id="example-2" class="anchor" href="#example-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Example</h5>
+
+<div class="highlight highlight-bash"><pre>$ curl <span class="pl-vo">$API_BASE</span>/v2/accounts/balances<span class="pl-k">?</span>sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99
+</pre></div>
+
+<div class="highlight highlight-json"><pre>{
+    <span class="pl-s1"><span class="pl-pds">"</span>balances<span class="pl-pds">"</span></span>: 
+        [{
+            <span class="pl-s1"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span>: <span class="pl-c1">0</span>,
+            <span class="pl-s1"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>SAVINGS-123<span class="pl-pds">"</span></span>,
+            <span class="pl-s1"><span class="pl-pds">"</span>balance<span class="pl-pds">"</span></span>: <span class="pl-c1">1085.42</span>,
+            <span class="pl-s1"><span class="pl-pds">"</span>drcr<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>,
+            <span class="pl-s1"><span class="pl-pds">"</span>transactions<span class="pl-pds">"</span></span>: <span class="pl-c1">null</span>,
+            <span class="pl-s1"><span class="pl-pds">"</span>pending<span class="pl-pds">"</span></span>: <span class="pl-c1">false</span>,
+            <span class="pl-s1"><span class="pl-pds">"</span>dr<span class="pl-pds">"</span></span>: <span class="pl-c1">false</span>
+        }]
+}</pre></div>
+
+<h5>
+<a id="properties-2" class="anchor" href="#properties-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Properties</h5>
+
+<p>Returns your list of accounts and their balances.</p>
+
+<table>
+<thead>
+<tr>
+<th>name</th>
+<th>description</th>
+<th>example value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>The ID given to the account in the account list by AIB Online Banking. Doesn't always keep this ID in other situations.</td>
+<td>0</td>
+</tr>
+<tr>
+<td>name</td>
+<td>Name of the account as in AIB Online Banking</td>
+<td>"SAVINGS-123"</td>
+</tr>
+<tr>
+<td>balance</td>
+<td>BigDecimal balance of the account</td>
+<td>100.00</td>
+</tr>
+<tr>
+<td>drcr</td>
+<td>String indication of the debit/credit status of the account.</td>
+<td>"DR"</td>
+</tr>
+<tr>
+<td>transactions</td>
+<td>Can't remember what this is for right now, seems to be null all the time!</td>
+<td>null</td>
+</tr>
+<tr>
+<td>pending</td>
+<td>Whether or not this account can have pending transactions.</td>
+<td>true</td>
+</tr>
+<tr>
+<td>dr</td>
+<td>Boolean indicating the debit or credit status of the balance.</td>
+<td>true</td>
+</tr>
+</tbody>
+</table>
+
+<h4>
+<a id="list-transactions-for-account" class="anchor" href="#list-transactions-for-account" aria-hidden="true"><span class="octicon octicon-link"></span></a>List Transactions for account</h4>
+
+<table>
+<thead>
+<tr>
+<th>method</th>
+<th>path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td>/v2/accounts/{accountName}/transactions</td>
+</tr>
+</tbody>
+</table>
+
+<h5>
+<a id="payload-3" class="anchor" href="#payload-3" aria-hidden="true"><span class="octicon octicon-link"></span></a>Payload</h5>
+
+<p>None</p>
+
+<h5>
+<a id="example-3" class="anchor" href="#example-3" aria-hidden="true"><span class="octicon octicon-link"></span></a>Example</h5>
+
+<div class="highlight highlight-bash"><pre>$ curl <span class="pl-vo">$API_BASE</span>/v2/accounts/SAVINGS-123/transactions<span class="pl-k">?</span>sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99
+</pre></div>
+
+<div class="highlight highlight-json"><pre>{
+    <span class="pl-s1"><span class="pl-pds">"</span>transactions<span class="pl-pds">"</span></span>: {
+        <span class="pl-s1"><span class="pl-pds">"</span>transactions<span class="pl-pds">"</span></span>: [
+            {
+                <span class="pl-s1"><span class="pl-pds">"</span>transDate<span class="pl-pds">"</span></span>: <span class="pl-c1">1379286000000</span>,
+                <span class="pl-s1"><span class="pl-pds">"</span>narrative<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>INTEREST CHARGED<span class="pl-pds">"</span></span>,
+                <span class="pl-s1"><span class="pl-pds">"</span>subNarrative<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>(Incl. Surcharge- / Interest 0.00)<span class="pl-pds">"</span></span>,
+                <span class="pl-s1"><span class="pl-pds">"</span>amount<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>195.86<span class="pl-pds">"</span></span>,
+                <span class="pl-s1"><span class="pl-pds">"</span>isDR<span class="pl-pds">"</span></span>: <span class="pl-c1">true</span>,
+                <span class="pl-s1"><span class="pl-pds">"</span>subsequentBalance<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>
+            }
+        ]
+    }
+}</pre></div>
+
+<h5>
+<a id="properties-3" class="anchor" href="#properties-3" aria-hidden="true"><span class="octicon octicon-link"></span></a>Properties</h5>
+
+<p>Returns the list of transactions for account <code>accountName</code>. Not sure why it's wrapped in two <code>transactions</code> elements....</p>
+
+<table>
+<thead>
+<tr>
+<th>name</th>
+<th>description</th>
+<th>example value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>transDate</td>
+<td>Transaction date in milliseconds since the epoch. Rounded to nearest day.</td>
+<td>1379286000000</td>
+</tr>
+<tr>
+<td>narrative</td>
+<td>The primary narrative of the transaction.</td>
+<td>"INTEREST CHARGED"</td>
+</tr>
+<tr>
+<td>subNarrative</td>
+<td>All other sub-lines of information relating to this transaction</td>
+<td>"(Incl Surcharge)</td>
+</tr>
+<tr>
+<td>amount</td>
+<td>The amount of the transaction.</td>
+<td>"29.23"</td>
+</tr>
+<tr>
+<td>isDR</td>
+<td>Boolean indicating the debit or credit status of the transaction</td>
+<td>true</td>
+</tr>
+<tr>
+<td>subsequentBalance</td>
+<td>The balance after this transaction</td>
+<td>"343.23</td>
+</tr>
+</tbody>
+</table>
+
+<h4>
+<a id="list-pending-transactions-for-account" class="anchor" href="#list-pending-transactions-for-account" aria-hidden="true"><span class="octicon octicon-link"></span></a>List Pending Transactions for account</h4>
+
+<p>For accounts marked as pending in the response from <code>/v2/accounts/balances</code> you can retrieve all pending transactions 
+using this endpoint.</p>
+
+<table>
+<thead>
+<tr>
+<th>method</th>
+<th>path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td>/v2/accounts/{accountName}/pending</td>
+</tr>
+</tbody>
+</table>
+
+<h5>
+<a id="payload-4" class="anchor" href="#payload-4" aria-hidden="true"><span class="octicon octicon-link"></span></a>Payload</h5>
+
+<p>None</p>
+
+<h5>
+<a id="example-4" class="anchor" href="#example-4" aria-hidden="true"><span class="octicon octicon-link"></span></a>Example</h5>
+
+<div class="highlight highlight-bash"><pre>$ curl <span class="pl-vo">$API_BASE</span>/v2/accounts/CURRENT-123/pending<span class="pl-k">?</span>sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99</pre></div>
+
+<div class="highlight highlight-json"><pre>[
+    {
+        <span class="pl-s1"><span class="pl-pds">"</span>narrative<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>MYMILKMAN<span class="pl-pds">"</span></span>, 
+        <span class="pl-s1"><span class="pl-pds">"</span>amount<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>14.00<span class="pl-pds">"</span></span>,
+        <span class="pl-s1"><span class="pl-pds">"</span>account<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>CURRENT-358<span class="pl-pds">"</span></span>,
+        <span class="pl-s1"><span class="pl-pds">"</span>isDR<span class="pl-pds">"</span></span>: <span class="pl-c1">true</span>
+    }
+]</pre></div>
+
+<h5>
+<a id="properties-4" class="anchor" href="#properties-4" aria-hidden="true"><span class="octicon octicon-link"></span></a>Properties</h5>
+
+<p>Returns the list of pending transactions for account <code>accountName</code>.</p>
+
+<table>
+<thead>
+<tr>
+<th>name</th>
+<th>description</th>
+<th>example value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>narrative</td>
+<td>The primary narrative of the transaction.</td>
+<td>"MYMILKMAN"</td>
+</tr>
+<tr>
+<td>account</td>
+<td>Rather pointless repeat of the account name :-/</td>
+<td>"CURRENT-123"</td>
+</tr>
+<tr>
+<td>amount</td>
+<td>The amount of the transaction.</td>
+<td>"29.23"</td>
+</tr>
+<tr>
+<td>isDR</td>
+<td>Boolean indicating the debit or credit status of the transaction</td>
+<td>true</td>
+</tr>
+</tbody>
+</table>
+
+<h4>
+<a id="transfer-between-your-own-accounts" class="anchor" href="#transfer-between-your-own-accounts" aria-hidden="true"><span class="octicon octicon-link"></span></a>Transfer between your own accounts</h4>
+
+<p>This is fairly experimental still - as there's a need for a digit of the PIN the first
+time you transfer in a session, I need all the PIN digits. Alternatively I could 
+turn this into a two-step API call like the login...</p>
+
+<table>
+<thead>
+<tr>
+<th>method</th>
+<th>path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST</td>
+<td>/v2/accounts/{accountNameFrom}/transferTo/{accountNameTo}</td>
+</tr>
+</tbody>
+</table>
+
+<h5>
+<a id="payload-5" class="anchor" href="#payload-5" aria-hidden="true"><span class="octicon octicon-link"></span></a>Payload</h5>
+
+<table>
+<thead>
+<tr>
+<th>name</th>
+<th>description</th>
+<th>example value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>narrativeFrom</td>
+<td>The description to appear on the source account statement. Will be truncated to 12 chars.</td>
+<td>"From me"</td>
+</tr>
+<tr>
+<td>narrativeTo</td>
+<td>The description to appear on the destination account statement. Will be truncated to 18 chars.</td>
+<td>"To you"</td>
+</tr>
+<tr>
+<td>pinDigits</td>
+<td>All your PIN Digits as a 5-digit number. This isn't the best idea!</td>
+<td>12345</td>
+</tr>
+<tr>
+<td>amount</td>
+<td>The amount to transfer</td>
+<td>50.00</td>
+</tr>
+</tbody>
+</table>
+
+<h5>
+<a id="example-5" class="anchor" href="#example-5" aria-hidden="true"><span class="octicon octicon-link"></span></a>Example</h5>
+
+<div class="highlight highlight-bash"><pre>$ curl -d <span class="pl-s1"><span class="pl-pds">"</span>narrativeFrom=From me&amp;narrativeTo=to you&amp;amount=20&amp;pinDigits=12345<span class="pl-pds">"</span></span> \
+        <span class="pl-vo">$API_BASE</span>/v2/accounts/CURRENT-123/transferTo/SAVINGS-234<span class="pl-k">?</span>sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99</pre></div>
+
+<div class="highlight highlight-json"><pre>{}</pre></div>
+
+<h5>
+<a id="properties-5" class="anchor" href="#properties-5" aria-hidden="true"><span class="octicon octicon-link"></span></a>Properties</h5>
+
+<p>None</p>
+
+<h4>
+<a id="logging-out" class="anchor" href="#logging-out" aria-hidden="true"><span class="octicon octicon-link"></span></a>Logging Out</h4>
+
+<table>
+<thead>
+<tr>
+<th>method</th>
+<th>path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td>/v2/logout</td>
+</tr>
+</tbody>
+</table>
+
+<h5>
+<a id="payload-6" class="anchor" href="#payload-6" aria-hidden="true"><span class="octicon octicon-link"></span></a>Payload</h5>
+
+<p>None</p>
+
+<h5>
+<a id="example-6" class="anchor" href="#example-6" aria-hidden="true"><span class="octicon octicon-link"></span></a>Example</h5>
+
+<div class="highlight highlight-bash"><pre>$ curl <span class="pl-vo">$API_BASE</span>/v2/logout<span class="pl-k">?</span>sessionId=517215a0-8c6a-11e3-97ac-001422f0bc99</pre></div>
+
+<div class="highlight highlight-json"><pre>{}</pre></div>
+
+<hr>
+
+<p><img src="https://cruel-carlota.pagodabox.com/86752651125cd250b51190c2d3295a88" alt="githalytics.com alpha" title="githalytics.com"></p>
+      </section>
+    </div>
+    <footer>
+      <p>Project maintained by <a href="https://github.com/owenobyrne">owenobyrne</a></p>
+      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+    </footer>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-48715419-2");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
