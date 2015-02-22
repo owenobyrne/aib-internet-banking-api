@@ -31,30 +31,35 @@ public class AccountOverviewPage extends FSSUserAgent
     }
 
     public static HashMap<String, Object> click(String page, HashMap<String, Object> inputParams)
-        throws Exception
-    {
+        throws Exception {
+    	String thisPage = "https://onlinebanking.aib.ie/inet/roi/accountoverview.htm";
+    	
         HashMap<String, Object> outputParams = new HashMap<String, Object>();
         String transactionToken = null;
-        Pattern p = Pattern.compile("accountoverview.htm\" method=\"post\"><input type=\"hidden\" name=\"isFormButtonClicked\" value=\"false\" /><input type=\"hidden\" name=\"transactionToken\" id=\"transactionToken\" value=\"(\\d+)\"");
+        Pattern p = Pattern.compile("accountoverview.htm\" method=\"post\" onsubmit=\"return isFormClickEnabled\\(this\\)\">\\s*<input type=\"hidden\" name=\"transactionToken\" id=\"transactionToken\" value=\"(\\d+)\"");
         						
         for(Matcher m = p.matcher(page); m.find();) 
             transactionToken = m.group(1);
 
-        HttpPost httppost = new HttpPost("https://aibinternetbanking.aib.ie/inet/roi/accountoverview.htm");
+        HttpPost httppost = new HttpPost(thisPage);
         List<BasicNameValuePair> nvps = new ArrayList<BasicNameValuePair>();
         nvps.add(new BasicNameValuePair("transactionToken", transactionToken));
-        nvps.add(new BasicNameValuePair("iBankFormSubmission", "true"));
-        log.fatal((new StringBuilder()).append("Clicking 'Account Overview' with ").append(nvps.toString()).toString());
+        nvps.add(new BasicNameValuePair("isFormButtonClicked", "true"));
+        
+        log.info((new StringBuilder()).append("Clicking 'Account Overview' with ").append(nvps.toString()).toString());
+        
         httppost.setEntity(new UrlEncodedFormEntity(nvps, Consts.UTF_8));
+        httppost.setHeader("Referer", PageUtils.getReferer(page));
         HttpResponse response = httpclient.execute(httppost);
         HttpEntity entity = response.getEntity();
         page = EntityUtils.toString(entity);
-        if(!page.contains("You are securely logged in."))
+        
+        if(!page.contains("QuickPay Start"))
         {
             throw new UnexpectedPageContentsException("Didn't get to the Account Overview Page!");
         } else
         {
-            outputParams.put("page", page);
+            outputParams.put("page", thisPage + "\n" + page);
                         
             ArrayList<Account> accounts = PageUtils.parseBalances(page);
             outputParams.put("balances", accounts);

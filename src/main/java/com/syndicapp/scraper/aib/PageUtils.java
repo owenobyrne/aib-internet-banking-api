@@ -10,10 +10,32 @@ import com.syndicapp.scraper.aib.model.Account;
 
 public class PageUtils {
 	private static Logger log = Logger.getLogger(PageUtils.class);
-
+	private static String[] months = new String[] {
+		"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+	};
+	
+	/**
+	 * The referer URL is the first line of the page blob (must be manually added in each page implementation)
+	 * 
+	 * @param page
+	 * @return The Referer URL
+	 */
+	static public String getReferer(String page) {
+		return (page.split("\n"))[0];
+	}
+	
+	static public int getMonthFromMonthName(String name) {
+		for (int i=0; i<12; i++) {
+			if (months[i].equalsIgnoreCase(name)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	
     static public ArrayList<Account> parseBalances(String page) {
-    	// regex yeeeehaw!!! What a bitch this was to figure out!
-        Pattern p = Pattern.compile("<span>([\\s\\w\\d]+\\-\\d{3,4})</span>\\s*</button>\\s*</form>(?:(?!quickPayCommand).)*?<h3>\\s*([\\d,.]+)\\s(DR)?\\s*[&<]((?:(?!quickPayCommand).)*?Available Funds.*?([\\d,.]+)\\s?(DR)?&)?", Pattern.DOTALL);
+
+    	Pattern p = Pattern.compile("<span>([\\s\\w\\d]+\\-\\d{3,4})</span>\\s*</li>\\s*<li class=\"balance\">\\s*<strong>Balance: </strong>\\s*<em>\\s*([\\d,.]+)\\s(DR)?\\s*</em>\\s*</li>\\s*<li>\\s*(&nbsp;|<strong>Available Funds: </strong>\\s*<em>([\\d,.]+)\\s*(DR)?</em>)\\s*</li>", Pattern.DOTALL);
         Matcher m = p.matcher(page);
         
         ArrayList<Account> accounts = new ArrayList<Account>();
@@ -21,6 +43,7 @@ public class PageUtils {
         int i = 0; 
         while(m.find()) {
         	Account a = null;
+
         	if (m.groupCount() == 6) {
         		if (null == m.group(5)) {
         			a = new Account(i, m.group(1), m.group(2), m.group(3), false);

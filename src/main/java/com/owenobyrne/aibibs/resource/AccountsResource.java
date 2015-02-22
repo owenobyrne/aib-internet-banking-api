@@ -50,14 +50,12 @@ public class AccountsResource {
 			@QueryParam("sessionId") String sessionId
 			) {
 
-		//String sessionId = (String) pacParams.getFirst("SESSION_ID");
 		String page = storage.getData(sessionId);
 
 		if (page != null) {
 			HashMap<String, Object> response = aibibs.getAccountBalances(page);
 			storage.addData(sessionId, 
 					(String) response.get("page"), 390);
-			//response.put("sessionId", sessionId);
 			response.remove("page");
 			return response;
 		} else {
@@ -76,13 +74,11 @@ public class AccountsResource {
 			@PathParam(value = "accountName") String accountName
 		) {
 
-		//String sessionId = params.getFirst("SESSION_ID");
 		String page = storage.getData(sessionId);
 		if (page != null) {
 			HashMap<String, Object> response = aibibs.getTransactionsForAccount(page, accountName);
-			storage.addData(sessionId,
-					(String) response.get("page"), 390);
-			//response.put("sessionId", sessionId);
+			storage.addData(sessionId, (String) response.get("page"), 390);
+		
 			response.remove("page");
 			response.remove("accounts");
 			response.remove("balances");

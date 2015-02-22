@@ -28,10 +28,11 @@ public class RegistrationNumberPage extends FSSUserAgent
     }
 
     public static HashMap<String, Object> click(String page, HashMap<String, Object> inputParams)
-        throws Exception
-    {
+        throws Exception {
+    	String thisPage = "https://onlinebanking.aib.ie/inet/roi/login.htm";
+    	
         HashMap<String, Object> outputParams = new HashMap<String, Object>();
-        HttpPost httppost = new HttpPost("https://aibinternetbanking.aib.ie/inet/roi/login.htm");
+        HttpPost httppost = new HttpPost(thisPage);
         String transactionToken = null;
         Pattern p = Pattern.compile("<input type=\"hidden\" name=\"transactionToken\" id=\"transactionToken\" value=\"(\\d*)\"/>");
         Matcher m;
@@ -43,21 +44,22 @@ public class RegistrationNumberPage extends FSSUserAgent
         nvps.add(new BasicNameValuePair("transactionToken", transactionToken));
         nvps.add(new BasicNameValuePair("jsEnabled", "TRUE"));
         nvps.add(new BasicNameValuePair("_target1", "true"));
+        
         httppost.setEntity(new UrlEncodedFormEntity(nvps, "UTF-8"));
+        httppost.setHeader("Referer", PageUtils.getReferer(page));
         HttpResponse response = httpclient.execute(httppost);
         HttpEntity entity = response.getEntity();
         page = EntityUtils.toString(entity);
+        
         log.debug(page);
-        outputParams.put("page", page);
-        p = Pattern.compile("<label for=\"digit\\d\"><strong>Digit (\\d)</strong></label>");
+        outputParams.put("page", thisPage + "\n" + page);
+        
+        p = Pattern.compile("<label class=\"alignc\" for=\"digit\\d\"><strong>Digit\\s*(\\d)</strong>\\s*</label>");
         m = p.matcher(page);
-        for(int d = 1; m.find(); d++)
+        for(int d = 1; m.find(); d++) {
             outputParams.put((new StringBuilder()).append("digit").append(d).toString(), m.group(1));
-
-        p = Pattern.compile("Please enter the <strong>([^<]*)</strong> from your <strong>([^<]*)</strong>");
-        for(m = p.matcher(page); m.find(); outputParams.put("whatvalue", m.group(2)))
-            outputParams.put("howmuch", m.group(1));
-
+        }
+        
         return outputParams;
     }
 }

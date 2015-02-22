@@ -1,8 +1,3 @@
-// Decompiled by DJ v3.12.12.96 Copyright 2011 Atanas Neshkov  Date: 17/03/2013 01:04:35
-// Home Page: http://members.fortunecity.com/neshkov/dj.html  http://www.neshkov.com/dj.html - Check often for new version!
-// Decompiler options: packimports(3) 
-// Source File Name:   StatementPage.java
-
 package com.syndicapp.scraper.aib;
 
 import java.util.ArrayList;
@@ -33,75 +28,131 @@ public class StatementPage extends FSSUserAgent {
 
 	public static HashMap<String, Object> click(String page, HashMap<String, Object> inputParams)
 			throws Exception {
+		String thisPage = "https://onlinebanking.aib.ie/inet/roi/statement.htm";
+		
 		HashMap<String, Object> outputParams = new HashMap<String, Object>();
-		HttpPost httppost = new HttpPost("https://aibinternetbanking.aib.ie/inet/roi/statement.htm");
+		HttpPost httppost = new HttpPost(thisPage);
 		List<BasicNameValuePair> nvps = new ArrayList<BasicNameValuePair>();
 		Pattern p = null;
 		String transactionToken = null;
 		Matcher m;
+
+		log.debug(page);
+		
 		if (inputParams.get("index") != null) {
 			nvps.add(new BasicNameValuePair("index", (String) inputParams.get("index")));
 			log.debug("Clicked the drop down");
-			p = Pattern
-					.compile("action=\"statement.htm\" method=\"POST\" onsubmit=\"return isFormClickEnabled\\(accountForm\\)\">\\s*<div>\\s*<label>Account:\\s*<select id=\"index\" name=\"index\" onchange=\"submitClickableForm\\(accountForm\\);\">\\s*(.*?)\\s*</select>\\s*</label>\\s*<input type=\"hidden\" name=\"transactionToken\" id=\"transactionToken\" value=\"(\\d+)\"/>");
-		
+			
+			p = Pattern.compile("action=\"statement.htm\" method=\"POST\" onsubmit=\"return isClickEnabled\\(\\)\">\\s*<select id=\"index\" name=\"index\" onchange=\".*?\">\\s*(.*?)\\s*</select>\\s*<input type=\"hidden\" name=\"transactionToken\" id=\"transactionToken\" value=\"(\\d+)\"/>");
+			
 			m = p.matcher(page);
-			if (m.find())
+			if (m.find()) {
 				transactionToken = m.group(2);
+			}
 			nvps.add(new BasicNameValuePair("isFormButtonClicked", "true"));
-			nvps.add(new BasicNameValuePair("iBankFormSubmission", "true"));
 			nvps.add(new BasicNameValuePair("transactionToken", transactionToken));
+			
 		} else {
-			log.debug("Clicked the left menu");
-			p = Pattern
-					.compile("action=\"statement.htm\" method=\"post\"><input type=\"hidden\" name=\"isFormButtonClicked\" value=\"false\" /><input type=\"hidden\" name=\"transactionToken\" id=\"transactionToken\" value=\"(\\d+)\"/>");
-			for (m = p.matcher(page); m.find();)
+			log.debug("Clicked the top menu");
+			p = Pattern.compile("id=\"statement_form_id\" action=\"statement.htm\" method=\"post\" onsubmit=\"return isFormClickEnabled\\(this\\)\">\\s*<input type=\"hidden\" name=\"transactionToken\" id=\"transactionToken\" value=\"(\\d+)\"/>");
+			m = p.matcher(page); 
+			if (m.find()) {
 				transactionToken = m.group(1);
+			}
 
-			nvps.add(new BasicNameValuePair("isFormButtonClicked", "true"));
 			nvps.add(new BasicNameValuePair("transactionToken", transactionToken));
+			nvps.add(new BasicNameValuePair("isFormButtonClicked", "true"));
+			nvps.add(new BasicNameValuePair("index", "0"));
+			
 		}
-		log.info((new StringBuilder()).append("Clicking 'Statement' with ").append(nvps.toString())
-				.toString());
+		
+		log.info((new StringBuilder()).append("Clicking 'Statement' with ").append(nvps.toString()).toString());
+		
 		httppost.setEntity(new UrlEncodedFormEntity(nvps, Consts.UTF_8));
+		httppost.setHeader("Referer", PageUtils.getReferer(page));
 		HttpResponse response = httpclient.execute(httppost);
 		HttpEntity entity = response.getEntity();
+		
 		page = EntityUtils.toString(entity);
-		outputParams.put("page", page);
+		outputParams.put("page", thisPage + "\n" + page);
+		log.debug(page);
+		
 		p = Pattern.compile("<option value=\"(\\d+)\".*?>(.*?)</option>");
 		m = p.matcher(page);
 		AccountDropdownList addl = new AccountDropdownList();
-		for (; m.find(); addl.addAccountDropdownItem(new AccountDropdownItem(m.group(1),
-				m.group(2), "")))
+		while (m.find()) {
+			addl.addAccountDropdownItem(new AccountDropdownItem(m.group(1), m.group(2), ""));
 			log.info((new StringBuilder()).append("Account name - ").append(m.group(2)).toString());
-
+		}
 		outputParams.put("accounts", addl);
-		p = Pattern
-				.compile("<tr class=\"j*ext01\">\\s*<td>(\\d\\d)/(\\d\\d)/(\\d\\d)</td>\\s*<td>([^<]*)</td>\\s*<td class=\"aibTextStyle10\">([^<]*)</td>\\s*<td class=\"aibTextStyle10\">([^<]*)</td>\\s*<td class=\"aibTextStyle10\">([^<]*)</td></tr>");
-		m = p.matcher(page);
+		
+		Pattern pDate = Pattern.compile("<td colspan=\"3\"><strong>.*?, (\\d{1,2})\\S\\S (\\S*) (\\d\\d)</strong></td>");
+		Pattern pTrans = Pattern.compile("<td class=\"forceWrap\">([^<]*)</td>\\s*<td class=\"alignr(.*?)\">([^<]*)<span></span></td>\\s*<td class=\"alignr\">([^<]*)</td>");
+		Matcher m1;
+		
 		TransactionList transactions = new TransactionList();
 		Transaction t = null;
+		GregorianCalendar date = null;
+		
+		p = Pattern.compile("<tr(.*?)</tr>", Pattern.DOTALL);
+		m = p.matcher(page);
 		while (m.find()) {
-			if (m.group(4).toLowerCase().contains("interest rate")) {
-				t = new Transaction(new GregorianCalendar(2000 + Integer.parseInt(m.group(3)),
-						Integer.parseInt(m.group(2)) - 1, Integer.parseInt(m.group(1))),
-						"New Interest Rate", "0.00", "", m.group(7));
-				transactions.addTransaction(t);
-				log.debug("Added new interest rate: " + t.getNarrative());
-			} else if (t != null && "".equals(m.group(5)) && "".equals(m.group(6))) {
-				t.addSubNarrative(m.group(4));
-				transactions.replaceLastTransaction(t);
-				log.debug("Updated narrative: " + t.getNarrative());
-			} else {
-				t = new Transaction(new GregorianCalendar(2000 + Integer.parseInt(m.group(3)),
-						Integer.parseInt(m.group(2)) - 1, Integer.parseInt(m.group(1))),
-						m.group(4), m.group(5), m.group(6), m.group(7));
-				transactions.addTransaction(t);
-				log.debug("Added: " + t.getNarrative());
+			
+			log.debug(m.group(1));
+			String row = m.group(1);
+			
+			m1 = pDate.matcher(row);
+			if (m1.find()) {
+				log.debug(m1.group(1) + "-" + m1.group(2) + "-" + m1.group(3));
+				date = new GregorianCalendar(
+					2000 + Integer.parseInt(m1.group(3)), 
+					PageUtils.getMonthFromMonthName(m1.group(2)),
+					Integer.parseInt(m1.group(1))
+				);
+				continue;
 			}
-			log.debug("Found transaction: " + t.getNarrative());
+			
+			m1 = pTrans.matcher(row);
+			if (m1.find()) {
+				log.debug(m1.group(1) + "-" + m1.group(2) + "-" + m1.group(3) + "-" + m1.group(4));
+				
+				if (m1.group(1).toLowerCase().contains("interest rate")) {
+					t = new Transaction(
+							date,
+							"New Interest Rate", 
+							"", 
+							"0.00", 
+							m1.group(4)
+					);
+					transactions.addTransaction(t);
+					log.info("New interest Rate");
+			
+				} else if (t != null && "".equals(m1.group(2)) && "".equals(m1.group(3))) {
+					t.addSubNarrative(m1.group(1));
+					transactions.replaceLastTransaction(t);
+					log.info("Updated narrative: " + t.getNarrative());
+					
+				} else {
+					t = new Transaction(
+						date,
+						m1.group(1), 
+						m1.group(2), 
+						m1.group(3), 
+						m1.group(4)
+					);
+					transactions.addTransaction(t);
+					log.info("Added: " + t.getNarrative());
+					
+				}
+				log.debug("Found transaction: " + t.getNarrative());
+				continue;
+			}
+			
 		}
+		
 		outputParams.put("transactions", transactions);
 		return outputParams;
 	}
+	
+
 }

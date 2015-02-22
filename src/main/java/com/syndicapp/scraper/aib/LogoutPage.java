@@ -28,23 +28,26 @@ public class LogoutPage extends FSSUserAgent
     }
 
     public static HashMap<String, Object> click(String page)
-        throws Exception
-    {
+        throws Exception {
+    	String thisPage = "https://onlinebanking.aib.ie/inet/roi/logout.htm";
+
         HashMap<String, Object> outputParams = new HashMap<String, Object>();
-        HttpPost httppost = new HttpPost("https://aibinternetbanking.aib.ie/inet/roi/logout.htm");
+        HttpPost httppost = new HttpPost(thisPage);
         String transactionToken = null;
-        Pattern p = Pattern.compile("action=\"logout.htm\" onsubmit=\"return isClickEnabled\\(\\)\">\\s*<input type=\"hidden\" name=\"transactionToken\" id=\"transactionToken\" value=\"(\\d+)\"/>");
+        Pattern p = Pattern.compile("action=\"logout.htm\" method=\"post\" onsubmit=\"return isClickEnabled\\(\\)\">\\s*<input type=\"hidden\" name=\"transactionToken\" id=\"transactionToken\" value=\"(\\d+)\"/>");
         for(Matcher m = p.matcher(page); m.find();)
             transactionToken = m.group(1);
 
         List<BasicNameValuePair> nvps = new ArrayList<BasicNameValuePair>();
         nvps.add(new BasicNameValuePair("transactionToken", transactionToken));
         httppost.setEntity(new UrlEncodedFormEntity(nvps, Consts.UTF_8));
+        httppost.setHeader("Referer", PageUtils.getReferer(page));
+        
         HttpResponse response = httpclient.execute(httppost);
         org.apache.http.HttpEntity entity = response.getEntity();
         page = EntityUtils.toString(entity);
         log.debug(page);
-        outputParams.put("page", page);
+        outputParams.put("page", thisPage + "\n" + page);
         return outputParams;
     }
 }

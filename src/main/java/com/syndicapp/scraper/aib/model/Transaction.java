@@ -1,8 +1,3 @@
-// Decompiled by DJ v3.12.12.96 Copyright 2011 Atanas Neshkov  Date: 17/03/2013 01:04:35
-// Home Page: http://members.fortunecity.com/neshkov/dj.html  http://www.neshkov.com/dj.html - Check often for new version!
-// Decompiler options: packimports(3) 
-// Source File Name:   Transaction.java
-
 package com.syndicapp.scraper.aib.model;
 
 import java.util.ArrayList;
@@ -11,23 +6,30 @@ import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 
-public class Transaction
-{
+public class Transaction {
+    static Logger Log = Logger.getLogger(Transaction.class);
+    GregorianCalendar transDate;
+    String narrative;
+    ArrayList<String> subNarrative;
+    String amount;
+    boolean isDR;
+    String subsequentBalance;
 
-    public Transaction(GregorianCalendar td, String n, String dr, String cr, String sb)
+    public Transaction(GregorianCalendar td, String n, String drcr, String a, String sb)
     {
         subNarrative = new ArrayList<String>();
         transDate = td;
         narrative = n;
-        if("".equals(cr))
-        {
-            isDR = true;
-            amount = dr;
-        } else
-        {
+        if(" credit".equals(drcr)) {
             isDR = false;
-            amount = cr;
+            amount = a;
+            
+        } else {
+            isDR = true;
+            amount = a;
+        
         }
+        
         subsequentBalance = sb.replace("&nbsp;", "");
         Log.debug(toString());
     }
@@ -107,12 +109,6 @@ public class Transaction
         this.isDR = isDR;
     }
 
-    static Logger Log = Logger.getLogger(Transaction.class);
-    GregorianCalendar transDate;
-    String narrative;
-    ArrayList<String> subNarrative;
-    String amount;
-    boolean isDR;
-    String subsequentBalance;
+
 
 }

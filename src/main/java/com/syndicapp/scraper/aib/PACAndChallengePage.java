@@ -22,9 +22,10 @@ public class PACAndChallengePage extends FSSUserAgent {
 	
     public static HashMap<String, Object> click(String page, HashMap<String, Object> inputParams)
         throws Exception {
+    	String thisPage = "https://onlinebanking.aib.ie/inet/roi/login.htm";
     	
         HashMap<String, Object> outputParams = new HashMap<String, Object>();
-        HttpPost httppost = new HttpPost("https://aibinternetbanking.aib.ie/inet/roi/login.htm");
+        HttpPost httppost = new HttpPost(thisPage);
         
         String transactionToken = null;
         Pattern p = Pattern.compile("<input type=\"hidden\" name=\"transactionToken\" id=\"transactionToken\" value=\"(\\d*)\"/>");
@@ -41,14 +42,17 @@ public class PACAndChallengePage extends FSSUserAgent {
         nvps.add(new BasicNameValuePair("pacDetails.pacDigit1", (String)inputParams.get("pacDetails.pacDigit1")));
         nvps.add(new BasicNameValuePair("pacDetails.pacDigit2", (String)inputParams.get("pacDetails.pacDigit2")));
         nvps.add(new BasicNameValuePair("pacDetails.pacDigit3", (String)inputParams.get("pacDetails.pacDigit3")));
-        nvps.add(new BasicNameValuePair("challengeDetails.challengeEntered", (String)inputParams.get("challengeDetails.challengeEntered")));
         
         httppost.setEntity(new UrlEncodedFormEntity(nvps, Consts.UTF_8));
+        httppost.setHeader("Referer", PageUtils.getReferer(page));
         
         HttpResponse response = httpclient.execute(httppost);
         HttpEntity entity = response.getEntity();
         page = EntityUtils.toString(entity);
-        if(!page.contains("You are securely logged in.")) {
+        
+        log.trace(page);
+        
+        if(!page.contains("QuickPay Start")) {
             // check for action="accountoverview.htm" - we are probably on an info page that AIB display now and again.
         	
         	p = Pattern.compile("action=\"accountoverview.htm\"");
@@ -57,7 +61,7 @@ public class PACAndChallengePage extends FSSUserAgent {
             if (m.find()) {
             	// looks like we're on an info page 
             	
-                outputParams.put("page", page);
+                outputParams.put("page", thisPage + "\n" + page);
                 outputParams.put("infoPage", true);
                 
                 return outputParams;
@@ -69,7 +73,7 @@ public class PACAndChallengePage extends FSSUserAgent {
 
             
         } else {
-            outputParams.put("page", page);
+            outputParams.put("page", thisPage + "\n" + page);
             //outputParams.put("infoPage", false);
             
             ArrayList<Account> accounts = PageUtils.parseBalances(page);

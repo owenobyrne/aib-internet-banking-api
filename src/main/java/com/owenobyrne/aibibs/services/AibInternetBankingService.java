@@ -39,9 +39,7 @@ public class AibInternetBankingService {
 			log.info((new StringBuilder()).append("Looking for digits ")
 					.append((String) stringOutput.get("digit1")).append(", ")
 					.append((String) stringOutput.get("digit2")).append(" and ")
-					.append((String) stringOutput.get("digit3")).append(" of PAC, and the ")
-					.append((String) stringOutput.get("howmuch")).append("of your ")
-					.append((String) stringOutput.get("whatvalue")).toString());
+					.append((String) stringOutput.get("digit3")).append(" of PAC"));
 		} catch (UnexpectedPageContentsException upce) {
 			log.fatal((new StringBuilder()).append("Error with click(): ")
 					.append(upce.getMessage()).toString());
@@ -60,7 +58,6 @@ public class AibInternetBankingService {
 			input.put("pacDetails.pacDigit1", pac1);
 			input.put("pacDetails.pacDigit2", pac2);
 			input.put("pacDetails.pacDigit3", pac3);
-			input.put("challengeDetails.challengeEntered", digits);
 			output = PACAndChallengePage.click(page, input);
 			
 			if ((Boolean)output.get("infoPage")) {
@@ -140,22 +137,24 @@ public class AibInternetBankingService {
 		HashMap<String, Object> objectOutput = new HashMap<String, Object>();
 		try {
 			objectOutput = StatementPage.click(page, input);
-			objectOutput = PendingTransactionsPage.click((String) objectOutput.get("page"), input);
-
 			AccountDropdownList adl = (AccountDropdownList) objectOutput.get("accounts");
 			AccountDropdownItem a = adl.getAccountByName(accountName);
+
+			log.info("Wanted: " + accountName + ", got " + a.getAccountName());
 
 			// Check if we are looking for the first account or not
 			if (!a.getAccountId().equals("0")) {
 				// Select the right account from the dropdown list.
 				input.put("index", a.getAccountId());
-				objectOutput = PendingTransactionsPage.click((String) objectOutput.get("page"),
-						input);
+				objectOutput = StatementPage.click((String) objectOutput.get("page"), input);
 			}
-
+			
+			input.remove("index");
+			objectOutput = PendingTransactionsPage.click((String) objectOutput.get("page"), input);
+			
+			
 			@SuppressWarnings("unchecked")
-			Vector<PendingTransaction> t = (Vector<PendingTransaction>) objectOutput
-					.get("pendingtransactions");
+			Vector<PendingTransaction> t = (Vector<PendingTransaction>) objectOutput.get("pendingtransactions");
 
 			// Return to the home page.
 			objectOutput = AccountOverviewPage.click((String) objectOutput.get("page"), null);

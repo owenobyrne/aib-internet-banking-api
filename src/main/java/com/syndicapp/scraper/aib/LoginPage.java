@@ -20,16 +20,16 @@ public class LoginPage extends FSSUserAgent
     {
     }
 
-    public static HashMap<String, Object> click()
-        throws Exception
-    {
+    public static HashMap<String, Object> click() throws Exception {
+    	String thisPage = "https://onlinebanking.aib.ie/inet/roi/login.htm";
+    	
         HashMap<String, Object> bundle = new HashMap<String, Object>();
-        HttpGet httpget = new HttpGet("https://aibinternetbanking.aib.ie/inet/roi/login.htm");
+        HttpGet httpget = new HttpGet(thisPage);
         HttpResponse response = httpclient.execute(httpget);
         org.apache.http.HttpEntity entity = response.getEntity();
         String page = EntityUtils.toString(entity);
         log.debug(page);
-        bundle.put("page", page);
+        bundle.put("page", thisPage + "\n" + page);
         return bundle;
     }
 }

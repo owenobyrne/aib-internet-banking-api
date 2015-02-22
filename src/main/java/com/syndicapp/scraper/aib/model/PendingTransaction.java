@@ -14,15 +14,9 @@ public class PendingTransaction {
 	String account;
 	boolean isDR;
 
-	public PendingTransaction(String n, String amount, String dr, String account) {
-		narrative = n;
-		
-		if ("".equals(dr)) {
-			isDR = false;
-		} else {
-			isDR = true;
-		}
-		
+	public PendingTransaction(String n, String amount, String account) {
+		this.narrative = n;
+		this.isDR = true;
 		this.amount = amount;
 		this.account = account;
 		Log.debug(toString());
