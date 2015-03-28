@@ -13,9 +13,8 @@ public class Transaction {
     ArrayList<String> subNarrative;
     String amount;
     boolean isDR;
-    String subsequentBalance;
 
-    public Transaction(GregorianCalendar td, String n, String drcr, String a, String sb)
+    public Transaction(GregorianCalendar td, String n, String drcr, String a)
     {
         subNarrative = new ArrayList<String>();
         transDate = td;
@@ -30,7 +29,6 @@ public class Transaction {
         
         }
         
-        subsequentBalance = sb.replace("&nbsp;", "");
         Log.debug(toString());
     }
 
@@ -72,16 +70,6 @@ public class Transaction {
         StringBuffer buffer = new StringBuffer((String)iter.next());
         for(; iter.hasNext(); buffer.append(" / ").append((String)iter.next()));
         return buffer.toString();
-    }
-
-    public String getSubsequentBalance()
-    {
-        return subsequentBalance;
-    }
-
-    public void setSubsequentBalance(String subsequentBalance)
-    {
-        this.subsequentBalance = subsequentBalance;
     }
 
     public void setTransDate(GregorianCalendar transDate)

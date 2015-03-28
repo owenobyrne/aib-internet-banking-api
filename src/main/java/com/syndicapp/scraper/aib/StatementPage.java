@@ -87,7 +87,8 @@ public class StatementPage extends FSSUserAgent {
 		outputParams.put("accounts", addl);
 		
 		Pattern pDate = Pattern.compile("<td colspan=\"3\"><strong>.*?, (\\d{1,2})\\S\\S (\\S*) (\\d\\d)</strong></td>");
-		Pattern pTrans = Pattern.compile("<td class=\"forceWrap\">([^<]*)</td>\\s*<td class=\"alignr(.*?)\">([^<]*)<span></span></td>\\s*<td class=\"alignr\">([^<]*)</td>");
+		//Pattern pTrans = Pattern.compile("<td class=\"forceWrap\">([^<]*)</td>\\s*<td class=\"alignr(.*?)\">([^<]*)<span></span></td>\\s*<td class=\"alignr\">([^<]*)<span>");
+		Pattern pTrans = Pattern.compile("<td class=\"forceWrap\">([^<]*)</td>\\s*<td class=\"alignr(.*?)\">([^<]*)<span></span></td>");
 		Matcher m1;
 		
 		TransactionList transactions = new TransactionList();
@@ -114,15 +115,14 @@ public class StatementPage extends FSSUserAgent {
 			
 			m1 = pTrans.matcher(row);
 			if (m1.find()) {
-				log.debug(m1.group(1) + "-" + m1.group(2) + "-" + m1.group(3) + "-" + m1.group(4));
+				log.debug(m1.group(1) + "-" + m1.group(2) + "-" + m1.group(3));
 				
 				if (m1.group(1).toLowerCase().contains("interest rate")) {
 					t = new Transaction(
 							date,
 							"New Interest Rate", 
 							"", 
-							"0.00", 
-							m1.group(4)
+							"0.00"
 					);
 					transactions.addTransaction(t);
 					log.info("New interest Rate");
@@ -137,8 +137,7 @@ public class StatementPage extends FSSUserAgent {
 						date,
 						m1.group(1), 
 						m1.group(2), 
-						m1.group(3), 
-						m1.group(4)
+						m1.group(3)
 					);
 					transactions.addTransaction(t);
 					log.info("Added: " + t.getNarrative());
