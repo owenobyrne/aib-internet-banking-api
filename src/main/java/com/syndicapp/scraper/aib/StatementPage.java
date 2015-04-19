@@ -86,9 +86,9 @@ public class StatementPage extends FSSUserAgent {
 		}
 		outputParams.put("accounts", addl);
 		
-		Pattern pDate = Pattern.compile("<td colspan=\"3\"><strong>.*?, (\\d{1,2})\\S\\S (\\S*) (\\d\\d)</strong></td>");
+		Pattern pDate = Pattern.compile("<td colspan=\"3\" class=\"hide-td-large\"><strong>.*?, (\\d{1,2})\\S\\S (\\S*) (\\d\\d)</strong></td>");
 		//Pattern pTrans = Pattern.compile("<td class=\"forceWrap\">([^<]*)</td>\\s*<td class=\"alignr(.*?)\">([^<]*)<span></span></td>\\s*<td class=\"alignr\">([^<]*)<span>");
-		Pattern pTrans = Pattern.compile("<td class=\"forceWrap\">([^<]*)</td>\\s*<td class=\"alignr(.*?)\">([^<]*)<span></span></td>");
+		Pattern pTrans = Pattern.compile("<td class=\"forceWrap\">([^<]*)</td>\\s*<td class=\"alignr(.*?)\">(?:<i class=\"hide-large\">)?(<span>.</span>([^<]*))?(?:</i>)?</td>");
 		Matcher m1;
 		
 		TransactionList transactions = new TransactionList();
@@ -99,12 +99,12 @@ public class StatementPage extends FSSUserAgent {
 		m = p.matcher(page);
 		while (m.find()) {
 			
-			log.debug(m.group(1));
+			//log.info(m.group(1));
 			String row = m.group(1);
 			
 			m1 = pDate.matcher(row);
 			if (m1.find()) {
-				log.debug(m1.group(1) + "-" + m1.group(2) + "-" + m1.group(3));
+				//log.info(m1.group(1) + "-" + m1.group(2) + "-" + m1.group(3));
 				date = new GregorianCalendar(
 					2000 + Integer.parseInt(m1.group(3)), 
 					PageUtils.getMonthFromMonthName(m1.group(2)),
@@ -115,7 +115,7 @@ public class StatementPage extends FSSUserAgent {
 			
 			m1 = pTrans.matcher(row);
 			if (m1.find()) {
-				log.debug(m1.group(1) + "-" + m1.group(2) + "-" + m1.group(3));
+				//log.info(m1.groupCount() + " " + m1.group(1));
 				
 				if (m1.group(1).toLowerCase().contains("interest rate")) {
 					t = new Transaction(
@@ -127,23 +127,25 @@ public class StatementPage extends FSSUserAgent {
 					transactions.addTransaction(t);
 					log.info("New interest Rate");
 			
-				} else if (t != null && "".equals(m1.group(2)) && "".equals(m1.group(3))) {
+				} else if (t != null && "".equals(m1.group(2))) {
 					t.addSubNarrative(m1.group(1));
 					transactions.replaceLastTransaction(t);
 					log.info("Updated narrative: " + t.getNarrative());
 					
-				} else {
+				} else if (m1.groupCount() == 4) {
+					//log.info(m1.group(1) + "/" + m1.group(2) + "/" + m1.group(3) + "/" + m1.group(4));
+				
 					t = new Transaction(
 						date,
 						m1.group(1), 
 						m1.group(2), 
-						m1.group(3)
+						m1.group(4)
 					);
 					transactions.addTransaction(t);
-					log.info("Added: " + t.getNarrative());
+					//log.info("Added: " + t.getNarrative());
 					
 				}
-				log.debug("Found transaction: " + t.getNarrative());
+				log.info("Found transaction: " + t.getNarrative());
 				continue;
 			}
 			

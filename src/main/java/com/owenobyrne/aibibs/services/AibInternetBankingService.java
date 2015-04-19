@@ -127,6 +127,7 @@ public class AibInternetBankingService {
 			log.fatal((new StringBuilder()).append("Error with click(): ")
 					.append(upce.getMessage()).toString());
 		} catch (Exception e) {
+			e.printStackTrace();
 			log.fatal(e);
 		}
 		return objectOutput;
