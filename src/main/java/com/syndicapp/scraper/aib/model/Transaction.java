@@ -29,6 +29,10 @@ public class Transaction {
         
         }
         
+        if (null == amount) {
+        	amount = "0.00";
+        }
+        
         Log.debug(toString());
     }
 
