@@ -54,7 +54,7 @@ public class RegistrationNumberPage extends FSSUserAgent
         log.debug(page);
         outputParams.put("page", thisPage + "\n" + page);
         
-        p = Pattern.compile("<label class=\"alignc\" for=\"digit\\d\"><strong>Digit\\s*(\\d)</strong>\\s*</label>");
+        p = Pattern.compile("<label class=\"alignc\" for=\"digit\\dText\"><strong>Digit\\s*(\\d)</strong>\\s*</label>");
         m = p.matcher(page);
         for(int d = 1; m.find(); d++) {
             outputParams.put((new StringBuilder()).append("digit").append(d).toString(), m.group(1));
