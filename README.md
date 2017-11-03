@@ -1,11 +1,11 @@
-###AIB Online Banking API
+### AIB Online Banking API
 I wanted to be able to access my bank account information from various sources, 
 so I created this screenscraping API for AIB Online Banking. 
 
 This version (v2) is the newer version of AIB Online banking (2015). To use the older
 version, checkout branch (online-banking-v1).
 
-###Implementation
+### Implementation
 Screenscraping a banking website requires very accurate imitation of a real 
 user using a browser. User-Agents are important. The sequence of links you navigate 
 to get to certain information is important. Every link has a one-time-only CSRF token 
